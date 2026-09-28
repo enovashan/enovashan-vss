@@ -72,13 +72,27 @@ input {
   height: 58px;
   display: grid;
   place-items: center;
-  background: linear-gradient(135deg, #c4d870 0%, #b7d06a 100%);
-  border: 1.5px solid rgba(23, 38, 60, 0.7);
-  box-shadow: 6px 6px 0 rgba(11, 24, 35, 0.1);
-  color: var(--ink);
-  font-size: 1.4rem;
-  font-weight: 800;
-  letter-spacing: -0.08em;
+  flex: 0 0 58px;
+}
+
+.brand-mark svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+
+.brand-mark__frame,
+.brand-mark__n {
+  fill: none;
+  stroke: var(--ink);
+  stroke-linecap: square;
+  stroke-linejoin: bevel;
+  stroke-width: 2.6;
+}
+
+.brand-mark__signal {
+  fill: var(--green-deep);
 }
 
 .brand-name {
@@ -180,16 +194,15 @@ input {
 }
 
 main {
-  padding: 1rem 1.4rem 2rem;
+  padding: 0.7rem 1.2rem 1.2rem;
 }
 
 .hero {
   display: grid;
-  grid-template-columns: minmax(0, 1.8fr) minmax(260px, 0.7fr);
-  align-items: end;
-  column-gap: 1.5rem;
-  min-height: 720px;
-  padding: 2.8rem 0 1.5rem;
+  grid-template-columns: minmax(0, 1fr);
+  align-items: center;
+  min-height: 0;
+  padding: 1.5rem 0 0.6rem;
 }
 
 .meta-label,
@@ -202,15 +215,15 @@ main {
 }
 
 .hero-copy {
-  padding-top: 3.7rem;
+  padding-top: 0.4rem;
 }
 
 .hero h1 {
-  margin: 1.1rem 0 0;
+  margin: 0.7rem 0 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-weight: 600;
-  line-height: 0.74;
-  font-size: clamp(7rem, 14vw, 22rem);
+  line-height: 0.82;
+  font-size: 12rem;
   letter-spacing: -0.085em;
   color: var(--heading);
 }
@@ -222,55 +235,6 @@ main {
 .hero h1 em {
   color: var(--green);
   font-style: normal;
-}
-
-.hero-panel {
-  align-self: end;
-  justify-self: end;
-  width: min(100%, 460px);
-  min-height: 270px;
-  margin-right: 2.5rem;
-  margin-bottom: 2rem;
-  padding: 1.2rem 1.3rem 1rem;
-  background: linear-gradient(180deg, #1b2f4a 0%, #112235 100%);
-  border: 1px solid rgba(23, 38, 60, 0.7);
-  border-radius: 0.8rem;
-  overflow: hidden;
-  position: relative;
-  box-shadow: 0 18px 40px rgba(17, 34, 53, 0.08);
-}
-
-.panel-topline {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  font-size: 0.8rem;
-  letter-spacing: 0.28em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.8);
-}
-
-.panel-graphic {
-  position: relative;
-  width: 100%;
-  height: 170px;
-  margin-top: 0.3rem;
-  border-radius: 0.5rem;
-  background: radial-gradient(circle at 50% 10%, rgba(255,255,255,0.08), transparent 35%);
-}
-
-.graphic-ring {
-  position: absolute;
-  inset: 14% 4% 2% 12%;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.32);
-  transform: rotate(8deg);
-}
-
-.graphic-ring-2 {
-  inset: 18% 12% 9% 4%;
-  border-color: rgba(255, 255, 255, 0.2);
-  transform: rotate(-18deg);
 }
 
 .topic-strip {
@@ -288,7 +252,7 @@ main {
 }
 
 .lead-story {
-  padding: 3.2rem 0 1.4rem;
+  padding: 1rem 0 0.8rem;
 }
 
 .story-header {
@@ -296,7 +260,7 @@ main {
   align-items: flex-end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.7rem;
+  margin-bottom: 0.5rem;
 }
 
 .story-header h2,
@@ -312,7 +276,7 @@ main {
 }
 
 .lead-intro {
-  margin: 0 0 2rem;
+  margin: 0 0 1.4rem;
   max-width: 640px;
   font-size: 1.08rem;
   line-height: 1.55;
@@ -441,7 +405,7 @@ main {
 }
 
 .language-collection {
-  padding: 1.5rem 0 1rem;
+  padding: 1rem 0 0.5rem;
 }
 
 .lang-links {
@@ -494,8 +458,8 @@ main {
   display: grid;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
   gap: 1.5rem;
-  padding-top: 2.2rem;
-  padding-bottom: 1rem;
+  padding-top: 1.5rem;
+  padding-bottom: 0.7rem;
 }
 
 .stance-copy p {
@@ -548,7 +512,7 @@ main {
   flex-direction: column;
   justify-content: center;
   gap: 0.9rem;
-  padding: 2.2rem 0 1.2rem;
+  padding: 1.4rem 0 0.9rem;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
 }
@@ -558,7 +522,7 @@ main {
 }
 
 .shop-section {
-  padding-top: 2.4rem;
+  padding-top: 1.5rem;
 }
 
 .shop-header {
@@ -566,7 +530,7 @@ main {
   align-items: end;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.2rem;
+  margin-bottom: 1rem;
 }
 
 .shop-grid {
@@ -817,16 +781,16 @@ main {
 .content-page {
   max-width: 1280px;
   margin: 0 auto;
-  padding: 2.25rem 1.4rem 1rem;
+  padding: 1.5rem 1.2rem 0.75rem;
 }
 
 .page-hero {
-  padding: 2rem 0 1.8rem;
+  padding: 1.2rem 0 1.2rem;
   border-bottom: 1px solid var(--line);
 }
 
 .page-hero h1 {
-  margin: 1rem 0 0.75rem;
+  margin: 0.7rem 0 0.55rem;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(4rem, 10vw, 9rem);
   line-height: 0.86;
@@ -851,14 +815,14 @@ main {
 }
 
 .story-directory {
-  padding-top: 2rem;
+  padding-top: 1.2rem;
 }
 
 .story-directory__filters {
   display: flex;
   flex-wrap: wrap;
   gap: 0.7rem 1rem;
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: rgba(23, 38, 60, 0.72);
   font-size: 0.74rem;
   letter-spacing: 0.18em;
@@ -1073,13 +1037,11 @@ main {
   .hero {
     grid-template-columns: 1fr;
     min-height: auto;
-    padding-bottom: 0.5rem;
+    padding-bottom: 0.4rem;
   }
 
-  .hero-panel {
-    justify-self: start;
-    margin-right: 0;
-    margin-top: 0.5rem;
+  .hero h1 {
+    font-size: 8rem;
   }
 
   .story-grid,
@@ -1128,11 +1090,15 @@ main {
   }
 
   .hero {
-    padding-top: 1.1rem;
+    padding-top: 0.7rem;
   }
 
   .hero-copy {
-    padding-top: 1.5rem;
+    padding-top: 0.2rem;
+  }
+
+  .hero h1 {
+    font-size: 4.5rem;
   }
 
   .meta-label,
@@ -1172,11 +1138,6 @@ main {
     gap: 0.8rem 1.2rem;
     font-size: 0.7rem;
     letter-spacing: 0.12em;
-  }
-
-  .hero-panel {
-    width: 100%;
-    min-height: 220px;
   }
 
   .product-art {

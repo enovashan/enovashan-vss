@@ -506,6 +506,7 @@ main {
   background: rgba(255, 255, 255, 0.12);
   border: 1px solid var(--line);
   border-radius: 0.9rem;
+  scroll-margin-top: 120px;
   transition: transform 0.2s ease, border-color 0.2s ease;
 }
 

@@ -56,3 +56,20 @@ $$;
 
 revoke all on function public.consume_comment_rate_limit(text) from public, anon, authenticated;
 grant execute on function public.consume_comment_rate_limit(text) to service_role;
+
+create table if not exists public.subscribers (
+  id uuid primary key default gen_random_uuid(),
+  email text not null unique check (char_length(email) between 5 and 254),
+  unsubscribe_token uuid not null default gen_random_uuid(),
+  confirmed boolean not null default true,
+  created_at timestamptz not null default now(),
+  unsubscribed_at timestamptz
+);
+
+create index if not exists subscribers_confirmed_idx
+  on public.subscribers (confirmed) where unsubscribed_at is null;
+
+alter table public.subscribers enable row level security;
+revoke all on public.subscribers from anon, authenticated;
+grant all on public.subscribers to service_role;
+

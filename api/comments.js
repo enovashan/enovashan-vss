@@ -58,6 +58,30 @@ function isSameOrigin(request) {
   }
 }
 
+async function notifyNewComment(comment) {
+  const apiKey = process.env.RESEND_API_KEY;
+  const notifyTo = process.env.COMMENT_NOTIFY_EMAIL || "enovashan@gmail.com";
+  if (!apiKey) return;
+
+  const from = process.env.RESEND_FROM || "Enovashan <hello@enovashan.com>";
+  await fetch("https://api.resend.com/emails", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${apiKey}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({
+      from,
+      to: notifyTo,
+      subject: `New comment on ${comment.article_slug}`,
+      html: `
+        <p><strong>${comment.display_name}</strong> commented on <strong>${comment.article_slug}</strong>:</p>
+        <p>${comment.body}</p>
+      `,
+    }),
+  }).catch(() => {});
+}
+
 module.exports = async function handler(request, response) {
   try {
     if (request.method !== "GET" && request.method !== "POST") {
@@ -142,6 +166,7 @@ module.exports = async function handler(request, response) {
       return jsonResponse(response, 502, { error: storageError(result.status, "saving the comment") });
     }
     const [comment] = await result.json();
+    await notifyNewComment(comment);
     return jsonResponse(response, 201, { comment });
   } catch {
     return jsonResponse(response, 500, { error: "The comment service encountered an error." });

@@ -48,7 +48,8 @@
             <div class="small-label">Dispatch</div>
             <h2>Join the signal.</h2>
             <form class="newsletter-form">
-              <input type="email" placeholder="Email address" />
+              <input type="email" name="email" placeholder="Email address" autocomplete="email" required />
+              <label class="comment-honeypot" aria-hidden="true">Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
               <button type="submit">Subscribe</button>
             </form>
             <p>One thoughtful message each Sunday. No hype. No clutter.</p>
@@ -85,5 +86,6 @@
         </div>
       </footer>
     </div>
+    <script src="script.js"></script>
   </body>
 </html>

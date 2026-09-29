@@ -283,6 +283,40 @@ main {
   color: rgba(23, 38, 60, 0.8);
 }
 
+.archive-teaser-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem 2rem;
+}
+
+.archive-teaser {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.65rem;
+  min-width: 0;
+  padding: 1rem 0 0.8rem;
+  border-top: 1px solid var(--line);
+}
+
+.archive-teaser h3 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.9rem, 3vw, 2.7rem);
+  line-height: 1;
+}
+
+.archive-teaser p {
+  max-width: 620px;
+  margin: 0;
+  color: rgba(23, 38, 60, 0.8);
+  line-height: 1.55;
+}
+
+.archive-teaser .inline-link {
+  margin-top: 0.15rem;
+}
+
 .story-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
@@ -910,6 +944,40 @@ main {
   color: rgba(23, 38, 60, 0.82);
 }
 
+.archive-article {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 1.5rem 0 3rem;
+}
+
+.archive-article__meta {
+  color: rgba(23, 38, 60, 0.7);
+  font-family: "IBM Plex Mono", "Courier New", monospace;
+  font-size: 0.78rem;
+  text-transform: uppercase;
+}
+
+.archive-article__body {
+  margin: 1.2rem 0 1.8rem;
+  color: rgba(23, 38, 60, 0.88);
+  font-size: 1.04rem;
+  line-height: 1.8;
+}
+
+.archive-article__body p {
+  margin: 0 0 1.25rem;
+}
+
+.archive-article__body blockquote {
+  margin: 1.6rem 0;
+  padding: 0.2rem 0 0.2rem 1.2rem;
+  border-left: 3px solid var(--green-deep);
+  color: var(--heading);
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.7rem;
+  line-height: 1.25;
+}
+
 .newsletter-box {
   padding: 2.4rem 0 2rem;
 }
@@ -1045,6 +1113,7 @@ main {
   }
 
   .story-grid,
+  .archive-teaser-grid,
   .shop-grid,
   .footer-top,
   .stance {
@@ -1123,6 +1192,7 @@ main {
   }
 
   .story-grid,
+  .archive-teaser-grid,
   .shop-grid,
   .stance-list,
   .lang-links,

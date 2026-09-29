@@ -158,11 +158,6 @@ def render_story_page(posts):
         </nav>
 
         <div class="toolbar">
-          <div class="lang-switch" aria-label="Choose story language">
-            <a href="stories.html" class="lang active">EN</a>
-            <a href="stories-urdu.html" class="lang">اردو</a>
-            <a href="stories-arabic.html" class="lang">ع</a>
-          </div>
           <a href="stories.html" class="icon-button" aria-label="Search stories">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 015.12 11.12l4.38 4.38 1.41-1.41-4.38-4.38A6.5 6.5 0 1110.5 4zm0 2a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"/></svg>
           </a>

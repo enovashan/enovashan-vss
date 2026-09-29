@@ -912,7 +912,7 @@ main {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(2.2rem, 3vw, 3rem);
   font-weight: 600;
-  line-height: 0.9;
+  line-height: 1.15;
   letter-spacing: -0.05em;
 }
 
@@ -935,6 +935,16 @@ main {
   display: flex;
   flex-direction: column;
   gap: 0.85rem;
+}
+
+.footer-lang-links a {
+  color: inherit;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.footer-lang-links a:hover {
+  color: var(--green-deep);
 }
 
 .small-label {
@@ -1533,19 +1543,27 @@ main {
 
   .story-header,
   .shop-header,
-  .footer-top,
   .footer-bottom,
   .stance {
     grid-template-columns: 1fr;
     display: block;
   }
 
+  .footer-top {
+    display: flex;
+    flex-direction: column;
+    gap: 1.8rem;
+  }
+
+  .footer-nav {
+    padding-top: 0;
+  }
+
   .story-grid,
   .archive-teaser-grid,
   .shop-grid,
   .stance-list,
-  .lang-links,
-  .footer-top {
+  .lang-links {
     grid-template-columns: 1fr;
   }
 

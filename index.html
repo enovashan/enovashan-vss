@@ -112,7 +112,7 @@
         <section class="language-collection" id="language-collection">
           <div class="section-kicker">Three languages / one curious mind</div>
           <div class="lang-links lang-links--series">
-            <section class="lang-card english-series-card" aria-labelledby="english-series-title">
+            <section class="lang-card english-series-card" id="english-series-card" aria-labelledby="english-series-title">
               <div class="english-series-heading">
                 <span class="lang-mark">Aa</span>
                 <div>
@@ -139,7 +139,7 @@
                 </article>
               </div>
             </section>
-            <section class="lang-card urdu-series-card" lang="ur" dir="rtl" aria-labelledby="urdu-series-title">
+            <section class="lang-card urdu-series-card" id="urdu-series-card" lang="ur" dir="rtl" aria-labelledby="urdu-series-title">
               <div class="urdu-series-heading">
                 <span class="lang-mark">الف</span>
                 <div>
@@ -170,7 +170,7 @@
                 </article>
               </div>
             </section>
-            <a href="stories-arabic.html" class="lang-card">
+            <a href="stories-arabic.html" class="lang-card" id="arabic-series-card">
               <span class="lang-mark">أب</span>
               <span class="lang-name">العربية</span>
               <span class="lang-copy">أفكار عن التعلّم والحياة والعمل.</span>
@@ -280,7 +280,7 @@
       <footer class="site-footer">
         <div class="footer-top">
           <div class="footer-lead">
-            <p>Ideas for the <em>in-between.</em> Enovashan.</p>
+            <p>Enovashan is a home for ideas to help you <em>navigate life, thoughtfully</em>.</p>
           </div>
 
           <nav class="footer-nav" aria-label="Footer navigation">
@@ -294,7 +294,8 @@
 
           <div class="footer-languages">
             <div class="small-label">Languages / three doors in</div>
-            <p>English, اردو, العربية.<br />Same curiosity. Different cadence.</p>
+            <p class="footer-lang-links"><a href="#english-series-card">English</a>, <a href="#urdu-series-card">اردو</a>, <a href="#arabic-series-card">العربية</a>.</p>
+            <p>Same curiosity. Different cadence.</p>
             <a href="newsletter.html" class="primary-link footer-link">Join the dispatch <span>→</span></a>
             <div class="small-label">Follow Enovashan</div>
             <nav class="footer-socials" aria-label="Social media">

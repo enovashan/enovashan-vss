@@ -193,6 +193,48 @@ input {
   fill: currentColor;
 }
 
+.social-toolbar {
+  gap: 0.4rem;
+}
+
+.social-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  color: var(--ink);
+}
+
+.social-icon svg {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: currentColor;
+}
+
+.social-icon:hover,
+.social-icon:focus-visible {
+  color: var(--green-deep);
+}
+
+.social-icon:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
+.social-icon--header {
+  width: 1.5rem;
+  flex-basis: 1.5rem;
+}
+
+.footer-socials {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+}
+
 main {
   padding: 0.7rem 1.2rem 1.2rem;
 }

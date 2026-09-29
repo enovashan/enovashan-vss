@@ -14,6 +14,16 @@ function cleanText(value) {
   return value.replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f]/g, "").trim();
 }
 
+function storageError(status, operation) {
+  if (status === 401 || status === 403) {
+    return `Supabase rejected the server key while ${operation} (HTTP ${status}). Check that the secret key and project URL belong to the same project.`;
+  }
+  if (status === 404) {
+    return `Supabase could not find the ${operation} (HTTP 404). Check that schema.sql ran in the project named by SUPABASE_URL.`;
+  }
+  return `Supabase failed while ${operation} (HTTP ${status}).`;
+}
+
 function getConfig() {
   const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
   const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -75,7 +85,9 @@ module.exports = async function handler(request, response) {
         limit: "100",
       });
       const result = await supabaseRequest(config, `comments?${query}`);
-      if (!result.ok) return jsonResponse(response, 502, { error: "Comments could not be loaded." });
+      if (!result.ok) {
+        return jsonResponse(response, 502, { error: storageError(result.status, "loading comments") });
+      }
       return jsonResponse(response, 200, { comments: await result.json() });
     }
 
@@ -115,7 +127,7 @@ module.exports = async function handler(request, response) {
       body: JSON.stringify({ p_fingerprint: fingerprint }),
     });
     if (!rateLimit.ok) {
-      return jsonResponse(response, 502, { error: "Comment protection is temporarily unavailable." });
+      return jsonResponse(response, 502, { error: storageError(rateLimit.status, "checking comment rate limits") });
     }
     if (await rateLimit.json() !== true) {
       return jsonResponse(response, 429, { error: "Please wait before posting another comment." });
@@ -127,7 +139,7 @@ module.exports = async function handler(request, response) {
       body: JSON.stringify({ article_slug: slug, display_name: displayName, body }),
     });
     if (!result.ok) {
-      return jsonResponse(response, 502, { error: "Your comment could not be saved. Please try again." });
+      return jsonResponse(response, 502, { error: storageError(result.status, "saving the comment") });
     }
     const [comment] = await result.json();
     return jsonResponse(response, 201, { comment });

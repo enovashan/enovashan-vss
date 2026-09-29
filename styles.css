@@ -449,6 +449,11 @@ main {
   margin-top: 1.1rem;
 }
 
+.lang-links--urdu-series {
+  grid-template-columns: minmax(0, 0.75fr) minmax(0, 1.6fr) minmax(0, 0.75fr);
+  align-items: start;
+}
+
 .lang-card {
   display: flex;
   flex-direction: column;
@@ -486,6 +491,61 @@ main {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: clamp(1.8rem, 2.4vw, 2.5rem);
   letter-spacing: -0.05em;
+}
+
+.urdu-series-card {
+  gap: 1rem;
+}
+
+.urdu-series-heading {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+.urdu-series-heading .lang-name {
+  display: block;
+  line-height: 1.1;
+}
+
+.urdu-series-heading .lang-copy {
+  margin-top: 0.3rem;
+  font-size: 0.85rem;
+}
+
+.urdu-series-list {
+  display: grid;
+  gap: 0.8rem;
+  width: 100%;
+}
+
+.urdu-series-item {
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--line);
+}
+
+.urdu-series-item h3 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 1.5rem;
+  line-height: 1.15;
+}
+
+.urdu-series-item h3 a {
+  text-decoration: none;
+}
+
+.urdu-series-item h3 a:hover,
+.urdu-series-item h3 a:focus-visible {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.urdu-series-item p {
+  margin: 0.25rem 0 0;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(23, 38, 60, 0.8);
 }
 
 .stance {
@@ -840,6 +900,14 @@ main {
   line-height: 1.6;
 }
 
+.page-hero[dir="rtl"] h1,
+.page-hero[dir="rtl"] p,
+.page-hero[dir="rtl"] .meta-label {
+  font-family: "Noto Nastaliq Urdu", serif;
+  text-align: right;
+  letter-spacing: 0;
+}
+
 .tight-hero {
   padding-top: 1.2rem;
 }
@@ -976,6 +1044,37 @@ main {
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.7rem;
   line-height: 1.25;
+}
+
+.archive-article--urdu,
+.archive-article--urdu .archive-article__meta,
+.comments-section[dir="rtl"] {
+  font-family: "Noto Nastaliq Urdu", serif;
+  text-align: right;
+  letter-spacing: 0;
+}
+
+.archive-article--urdu .archive-article__body {
+  font-size: 1.08rem;
+  line-height: 2.2;
+}
+
+.archive-article--urdu .archive-article__body p {
+  margin-bottom: 1.45rem;
+}
+
+.archive-article--urdu .archive-article__body blockquote {
+  line-height: 2;
+}
+
+.comments-section[dir="rtl"] .comment-form,
+.comments-section[dir="rtl"] .comment-list {
+  direction: rtl;
+  text-align: right;
+}
+
+.comments-section[dir="rtl"] .comment-item__header {
+  flex-direction: row-reverse;
 }
 
 .comments-section {

@@ -11,6 +11,30 @@ async function initializeComments(section) {
   const form = section.querySelector("[data-comment-form]");
   const status = section.querySelector("[data-comment-status]");
   const submit = form.querySelector("button[type='submit']");
+  const isUrdu = section.dataset.commentsLocale === "ur";
+  const messages = isUrdu
+    ? {
+        empty: "ابھی کوئی تبصرہ نہیں۔ گفتگو شروع کریں۔",
+        saving: "آپ کا تبصرہ محفوظ ہو رہا ہے۔۔۔",
+        posted: "آپ کا تبصرہ شائع ہو گیا۔",
+        failed: "تبصرہ محفوظ نہیں ہو سکا۔ براہ کرم دوبارہ کوشش کریں۔",
+        unavailable: "تبصرے ابھی لوڈ نہیں ہو سکے۔",
+        wait: "براہ کرم دوسرا تبصرہ بھیجنے سے پہلے کچھ دیر انتظار کریں۔",
+      }
+    : {
+        empty: "Be the first to join the conversation.",
+        saving: "Saving your comment…",
+        posted: "Your comment is posted.",
+        failed: "Your comment could not be saved. Please try again.",
+        unavailable: "Comments could not be loaded.",
+        wait: "Please wait before posting another comment.",
+      };
+
+  function localizedError(error, fallback) {
+    if (!isUrdu) return error?.message || fallback;
+    if (error?.message?.toLowerCase().includes("wait")) return messages.wait;
+    return fallback;
+  }
 
   function setStatus(message, state = "") {
     status.textContent = message;
@@ -24,7 +48,7 @@ async function initializeComments(section) {
     if (comments.length === 0) {
       const empty = document.createElement("li");
       empty.className = "comment-empty";
-      empty.textContent = "Be the first to join the conversation.";
+      empty.textContent = messages.empty;
       list.append(empty);
       return;
     }
@@ -61,7 +85,7 @@ async function initializeComments(section) {
   form.addEventListener("submit", async (event) => {
     event.preventDefault();
     submit.disabled = true;
-    setStatus("Saving your comment…");
+    setStatus(messages.saving);
     const values = new FormData(form);
 
     try {
@@ -79,9 +103,9 @@ async function initializeComments(section) {
       if (!response.ok) throw new Error(result.error || "Your comment could not be saved.");
       form.reset();
       await loadComments();
-      setStatus("Your comment is posted.", "success");
+      setStatus(messages.posted, "success");
     } catch (error) {
-      setStatus(error.message || "Your comment could not be saved.", "error");
+      setStatus(localizedError(error, messages.failed), "error");
     } finally {
       submit.disabled = false;
     }
@@ -90,6 +114,6 @@ async function initializeComments(section) {
   try {
     await loadComments();
   } catch (error) {
-    setStatus(error.message || "Comments could not be loaded.", "error");
+    setStatus(localizedError(error, messages.unavailable), "error");
   }
 }

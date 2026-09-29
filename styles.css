@@ -908,6 +908,12 @@ main {
   letter-spacing: 0;
 }
 
+.page-hero[dir="rtl"] h1 {
+  margin: 0.35rem 0 0.55rem;
+  font-size: clamp(2.4rem, 5vw, 4.5rem);
+  line-height: 1.65;
+}
+
 .tight-hero {
   padding-top: 1.2rem;
 }

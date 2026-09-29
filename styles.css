@@ -1586,3 +1586,115 @@ main {
     grid-template-columns: 1fr 1fr;
   }
 }
+
+.watch-video-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.watch-video-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+}
+
+.watch-video-embed {
+  position: relative;
+  width: 100%;
+  padding-top: 56.25%;
+  border-radius: 0.8rem;
+  overflow: hidden;
+  background: rgba(23, 38, 60, 0.08);
+}
+
+.watch-video-embed iframe {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border: 0;
+}
+
+.watch-video-meta {
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(23, 38, 60, 0.65);
+}
+
+.watch-video-card h3 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.2rem, 1.6vw, 1.5rem);
+  line-height: 1.25;
+  letter-spacing: -0.02em;
+}
+
+@media (max-width: 900px) {
+  .watch-video-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.watch-channel-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.4rem;
+}
+
+.watch-channel-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  padding: 1.8rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.watch-channel-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: var(--green);
+}
+
+.watch-channel-icon svg {
+  width: 24px;
+  height: 24px;
+  fill: var(--ink);
+}
+
+.watch-channel-meta {
+  display: flex;
+  gap: 0.6rem;
+  font-size: 0.78rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(23, 38, 60, 0.65);
+}
+
+.watch-channel-card h3 {
+  margin: 0;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.8rem, 2.6vw, 2.4rem);
+  line-height: 1;
+  letter-spacing: -0.03em;
+}
+
+.watch-channel-card p {
+  margin: 0;
+  color: rgba(23, 38, 60, 0.8);
+  line-height: 1.6;
+}
+
+@media (max-width: 760px) {
+  .watch-channel-grid {
+    grid-template-columns: 1fr;
+  }
+}

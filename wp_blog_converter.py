@@ -154,6 +154,7 @@ def render_story_page(posts):
           <a href="books.html">Learn</a>
           <a href="recipes.html">Recipes</a>
           <a href="shop.html">Shop</a>
+          <a href="about.html">About</a>
         </nav>
 
         <div class="toolbar">
@@ -280,6 +281,7 @@ def render_post_page(post):
           <a href="../watch.html">Watch</a>
           <a href="../recipes.html">Recipes</a>
           <a href="../shop.html">Shop</a>
+          <a href="../about.html">About</a>
         </nav>
       </header>
 

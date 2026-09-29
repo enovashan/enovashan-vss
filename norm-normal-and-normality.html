@@ -8,6 +8,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="styles.css" />
+    <script src="comments.js" defer></script>
   </head>
   <body>
     <div class="page-shell page-shell--subpage">
@@ -46,6 +47,19 @@
             <p>Peace.</p>
             <p>I.A.</p>
           </div>
+          <section class="comments-section" data-comments data-article-slug="norm-normal-and-normality" aria-labelledby="comments-title">
+            <div class="eyebrow">The conversation</div>
+            <h2 id="comments-title">Comments <span data-comment-count>0</span></h2>
+            <p class="comments-disclosure">Comments are public and do not require an account. Use a display name, and keep private information out of your post.</p>
+            <form class="comment-form" data-comment-form>
+              <label>Name<input name="name" type="text" maxlength="60" autocomplete="name" required /></label>
+              <label>Your comment<textarea name="body" rows="4" maxlength="2000" required></textarea></label>
+              <label class="comment-honeypot" aria-hidden="true">Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+              <button class="comment-submit" type="submit">Post comment <span aria-hidden="true">→</span></button>
+              <p class="comment-status" data-comment-status aria-live="polite"></p>
+            </form>
+            <ol class="comment-list" data-comment-list aria-label="Comments"></ol>
+          </section>
           <a href="index.html#lead-story" class="primary-link">Back to the lead stories <span>→</span></a>
         </article>
       </main>

@@ -1638,6 +1638,18 @@ main {
   }
 }
 
+.instagram-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 1.4rem;
+  margin-bottom: 2rem;
+}
+
+.instagram-grid .instagram-media {
+  margin: 0 !important;
+  width: 100% !important;
+}
+
 .watch-channel-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

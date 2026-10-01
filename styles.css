@@ -264,9 +264,9 @@ main {
   margin: 0.7rem 0 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-weight: 600;
-  line-height: 0.82;
-  font-size: 12rem;
-  letter-spacing: -0.085em;
+  line-height: 0.9;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  letter-spacing: -0.06em;
   color: var(--heading);
 }
 
@@ -991,9 +991,9 @@ main {
 .page-hero h1 {
   margin: 0.7rem 0 0.55rem;
   font-family: "Cormorant Garamond", Georgia, serif;
-  font-size: clamp(4rem, 10vw, 9rem);
-  line-height: 0.86;
-  letter-spacing: -0.08em;
+  font-size: clamp(2.5rem, 5vw, 5rem);
+  line-height: 0.9;
+  letter-spacing: -0.06em;
   color: var(--heading);
 }
 
@@ -1468,10 +1468,6 @@ main {
     padding-bottom: 0.4rem;
   }
 
-  .hero h1 {
-    font-size: 8rem;
-  }
-
   .story-grid,
   .archive-teaser-grid,
   .shop-grid,
@@ -1524,10 +1520,6 @@ main {
 
   .hero-copy {
     padding-top: 0.2rem;
-  }
-
-  .hero h1 {
-    font-size: 4.5rem;
   }
 
   .meta-label,

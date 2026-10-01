@@ -203,17 +203,17 @@ function buildCardSnippet(post, { home = false } = {}) {
 </article>`;
 }
 
-function markerStart(slug) {
-  return `<!-- cms:${slug} -->`;
+function markerStart(slug, kind = "card") {
+  return `<!-- cms:${slug}:${kind} -->`;
 }
-function markerEnd(slug) {
-  return `<!-- /cms:${slug} -->`;
+function markerEnd(slug, kind = "card") {
+  return `<!-- /cms:${slug}:${kind} -->`;
 }
 
 // Inserts or replaces a marked snippet block inside the given container, keeping newest first
-function upsertSnippetInHtml(pageHtml, slug, snippetHtml, containerClass) {
-  const block = `${markerStart(slug)}\n${snippetHtml}\n${markerEnd(slug)}`;
-  const blockRe = new RegExp(`${markerStart(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?${markerEnd(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
+function upsertSnippetInHtml(pageHtml, slug, snippetHtml, containerClass, kind = "card") {
+  const block = `${markerStart(slug, kind)}\n${snippetHtml}\n${markerEnd(slug, kind)}`;
+  const blockRe = new RegExp(`${markerStart(slug, kind).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?${markerEnd(slug, kind).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
 
   if (blockRe.test(pageHtml)) {
     return pageHtml.replace(blockRe, block);
@@ -226,9 +226,18 @@ function upsertSnippetInHtml(pageHtml, slug, snippetHtml, containerClass) {
   return pageHtml.replace(containerRe, `$1\n${block}`);
 }
 
-function removeSnippetFromHtml(pageHtml, slug) {
-  const blockRe = new RegExp(`\\s*${markerStart(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?${markerEnd(slug).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
+function removeSnippetFromHtml(pageHtml, slug, kind = "card") {
+  const blockRe = new RegExp(`\\s*${markerStart(slug, kind).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}[\\s\\S]*?${markerEnd(slug, kind).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`);
   return pageHtml.replace(blockRe, "");
+}
+
+// Builds the item markup for the hand-curated English/Urdu series lists on the home page
+function buildSeriesItemSnippet(post) {
+  const itemClass = post.language === "ur" ? "urdu-series-item" : "english-series-item";
+  return `<article class="${itemClass}">
+  <h3><a href="${escapeHtml(post.slug)}.html">${escapeHtml(post.title)}</a></h3>
+  <p>${escapeHtml(post.summary || "")}</p>
+</article>`;
 }
 
 // Commits the article page + inserts its card into the target (and optionally home) directory page
@@ -253,17 +262,26 @@ async function publishPostToGitHub(post) {
   const updatedTargetHtml = upsertSnippetInHtml(targetFile.content, post.slug, cardSnippet, containerClass);
   await ghPutFile(config, targetFilename, updatedTargetHtml, `cms: list ${post.slug} on ${targetFilename}`, targetFile.sha);
 
-  // Home featured placement lives in a separate file unless the article's own target page IS the home page
-  if (post.target_page !== "index") {
-    const homeFile = await ghGetFile(config, "index.html");
-    if (homeFile) {
+  // Home featured placement + the hand-curated English/Urdu series lists live in index.html
+  const homeFile = await ghGetFile(config, "index.html");
+  if (homeFile) {
+    let homeHtml = homeFile.content;
+
+    if (post.target_page !== "index") {
       const homeSnippet = buildCardSnippet(post, { home: true });
-      const updatedHome = post.featured_on_home
-        ? upsertSnippetInHtml(homeFile.content, post.slug, homeSnippet, "archive-teaser-grid")
-        : removeSnippetFromHtml(homeFile.content, post.slug);
-      if (updatedHome !== homeFile.content) {
-        await ghPutFile(config, "index.html", updatedHome, `cms: ${post.featured_on_home ? "feature" : "unfeature"} ${post.slug} on home`, homeFile.sha);
-      }
+      homeHtml = post.featured_on_home
+        ? upsertSnippetInHtml(homeHtml, post.slug, homeSnippet, "archive-teaser-grid", "home")
+        : removeSnippetFromHtml(homeHtml, post.slug, "home");
+    }
+
+    if (post.language === "en") {
+      homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "english-series-list", "series");
+    } else if (post.language === "ur") {
+      homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "urdu-series-list", "series");
+    }
+
+    if (homeHtml !== homeFile.content) {
+      await ghPutFile(config, "index.html", homeHtml, `cms: update home page for ${post.slug}`, homeFile.sha);
     }
   }
 
@@ -294,9 +312,10 @@ async function unpublishPostFromGitHub(post) {
 
   const homeFile = await ghGetFile(config, "index.html");
   if (homeFile) {
-    const updated = removeSnippetFromHtml(homeFile.content, post.slug);
-    if (updated !== homeFile.content) {
-      await ghPutFile(config, "index.html", updated, `cms: unfeature ${post.slug} from home`, homeFile.sha);
+    let homeHtml = removeSnippetFromHtml(homeFile.content, post.slug, "home");
+    homeHtml = removeSnippetFromHtml(homeHtml, post.slug, "series");
+    if (homeHtml !== homeFile.content) {
+      await ghPutFile(config, "index.html", homeHtml, `cms: unfeature ${post.slug} from home`, homeFile.sha);
     }
   }
 }

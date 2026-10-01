@@ -863,9 +863,7 @@
           </div>
 
           <div style="margin-top: 0.75rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
-            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
-              <input type="checkbox" id="postFeaturedHome" /> Also feature on Home page (index.html lead section)
-            </label>
+            <span style="font-size: 0.85rem; font-weight: 600;">The three most recently published posts appear on the Home page automatically.</span>
             <div style="font-size: 0.8rem; color: var(--muted);">
               Publish Date: <span id="postPublishedDateDisplay"></span>
             </div>
@@ -1284,7 +1282,6 @@
                     </span>
                     <span class="cms-post-badge">${getTargetPageLabel(post.target_page)}</span>
                     <span class="cms-post-badge">${post.language?.toUpperCase() || "EN"}</span>
-                    ${post.featured_on_home ? '<span class="cms-post-badge" style="background:#dbeafe;color:#1e40af;">Home Featured</span>' : ""}
                     <span style="font-size:0.8rem; color:var(--muted); margin-left:auto;">${dateStr}</span>
                   </div>
                   <h3 class="cms-post-title" ${isRtl ? 'dir="rtl" style="font-family:\'Noto Nastaliq Urdu\',serif;"' : ""}>
@@ -1330,7 +1327,6 @@
         document.getElementById("postTargetPage").value = "stories";
         document.getElementById("postLanguage").value = "en";
         document.getElementById("postStatus").value = "published";
-        document.getElementById("postFeaturedHome").checked = false;
         document.getElementById("postSummary").value = "";
         document.getElementById("markdownInput").value = "";
         document.getElementById("slugPreviewText").textContent = "my-post";
@@ -1351,7 +1347,6 @@
         document.getElementById("postTargetPage").value = post.target_page || "stories";
         document.getElementById("postLanguage").value = post.language || "en";
         document.getElementById("postStatus").value = post.status || "published";
-        document.getElementById("postFeaturedHome").checked = Boolean(post.featured_on_home);
         document.getElementById("postSummary").value = post.summary || "";
         document.getElementById("markdownInput").value = post.content_markdown || "";
         document.getElementById("slugPreviewText").textContent = post.slug;
@@ -1704,7 +1699,6 @@
         const target_page = document.getElementById("postTargetPage").value;
         const language = document.getElementById("postLanguage").value;
         const status = statusOverride || document.getElementById("postStatus").value;
-        const featured_on_home = document.getElementById("postFeaturedHome").checked;
         const content_markdown = document.getElementById("markdownInput").value;
         const content_html = markdownToHtml(content_markdown);
 
@@ -1734,7 +1728,6 @@
           target_page,
           language,
           status,
-          featured_on_home,
           published_at: currentEditingPost?.published_at || new Date().toISOString(),
         };
 
@@ -1909,7 +1902,7 @@ ${content_html}
 </html>`;
       }
 
-      function buildCardSnippet({ slug, title, summary, category, read_time, target_page, language, featured_on_home, published_at }) {
+      function buildCardSnippet({ slug, title, summary, category, read_time, target_page, language, published_at }) {
         const isRtl = language === "ur" || language === "ar";
         const dateStr = published_at ? new Date(published_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
@@ -1931,17 +1924,6 @@ ${content_html}
   <div class="story-meta"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "Read")}</span></div>
   <h3><a href="${escapeHtml(slug)}.html">${escapeHtml(title)}</a></h3>
   <p>${escapeHtml(summary || "")}</p>
-</article>`);
-        }
-
-        // Additional snippet if featured on Home
-        if (featured_on_home && target_page !== "index") {
-          snippets.push(`\n<!-- Featured on Home page: Place in index.html inside <div class="archive-teaser-grid"> -->
-<article class="archive-teaser">
-  <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${dateStr}</span></div>
-  <h3>${escapeHtml(title)}</h3>
-  <p>${escapeHtml(summary || "")}</p>
-  <a href="${escapeHtml(slug)}.html" class="inline-link">Read the story <span>&rarr;</span></a>
 </article>`);
         }
 
@@ -1972,7 +1954,6 @@ ${content_html}
         const read_time = document.getElementById("postReadTime").value.trim();
         const target_page = document.getElementById("postTargetPage").value;
         const language = document.getElementById("postLanguage").value;
-        const featured_on_home = document.getElementById("postFeaturedHome").checked;
         const summary = document.getElementById("postSummary").value.trim();
         const content_html = markdownToHtml(document.getElementById("markdownInput").value);
 
@@ -1984,7 +1965,6 @@ ${content_html}
           read_time,
           target_page,
           language,
-          featured_on_home,
           content_html,
           published_at: currentEditingPost?.published_at || new Date().toISOString(),
         };

@@ -187,7 +187,7 @@ function buildCardSnippet(post, { home = false } = {}) {
   const isRtl = language === "ur" || language === "ar";
 
   if (home || target_page === "index") {
-    return `<article class="archive-teaser">
+    return `<article class="archive-teaser" lang="${escapeHtml(language || "en")}"${isRtl ? ' dir="rtl"' : ""}>
   <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "")}</span></div>
   <h3>${escapeHtml(title)}</h3>
   <p>${escapeHtml(summary || "")}</p>
@@ -240,6 +240,36 @@ function buildSeriesItemSnippet(post) {
 </article>`;
 }
 
+async function getLatestPublishedPosts() {
+  const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
+  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !secretKey) {
+    throw new Error("Supabase configuration missing for latest homepage posts.");
+  }
+  const res = await fetch(`${url}/rest/v1/posts?select=slug,title,summary,category,read_time,language&status=eq.published&order=published_at.desc,slug.asc&limit=3`, {
+    headers: {
+      apikey: secretKey,
+      ...(secretKey.startsWith("eyJ") ? { authorization: "Bearer " + secretKey } : {}),
+    },
+  });
+  if (!res.ok) {
+    throw new Error(`Failed to load latest homepage posts (HTTP ${res.status}).`);
+  }
+  return res.json();
+}
+
+function updateLatestPosts(homeHtml, posts) {
+  const start = "<!-- latest-posts:start -->";
+  const end = "<!-- latest-posts:end -->";
+  const startIndex = homeHtml.indexOf(start);
+  const endIndex = homeHtml.indexOf(end, startIndex + start.length);
+  if (startIndex === -1 || endIndex === -1) {
+    throw new Error("Could not find the latest posts section on the home page.");
+  }
+  const cards = posts.map((post) => buildCardSnippet(post, { home: true })).join("\n");
+  return homeHtml.slice(0, startIndex) + `${start}\n${cards}\n` + homeHtml.slice(endIndex);
+}
+
 // Commits the article page + inserts its card into the target (and optionally home) directory page
 async function publishPostToGitHub(post) {
   const config = getGithubConfig();
@@ -252,37 +282,32 @@ async function publishPostToGitHub(post) {
   const existingArticle = await ghGetFile(config, articlePath);
   await ghPutFile(config, articlePath, articleHtml, `cms: publish ${post.slug}`, existingArticle?.sha);
 
-  const targetFilename = getTargetPageFilename(post.target_page);
-  const containerClass = post.target_page === "index" ? "archive-teaser-grid" : "story-list";
-  const targetFile = await ghGetFile(config, targetFilename);
-  if (!targetFile) {
-    throw new Error(`Could not read ${targetFilename} from the repository.`);
+  if (post.target_page !== "index") {
+    const targetFilename = getTargetPageFilename(post.target_page);
+    const targetFile = await ghGetFile(config, targetFilename);
+    if (!targetFile) {
+      throw new Error(`Could not read ${targetFilename} from the repository.`);
+    }
+    const cardSnippet = buildCardSnippet(post);
+    const updatedTargetHtml = upsertSnippetInHtml(targetFile.content, post.slug, cardSnippet, "story-list");
+    await ghPutFile(config, targetFilename, updatedTargetHtml, `cms: list ${post.slug} on ${targetFilename}`, targetFile.sha);
   }
-  const cardSnippet = buildCardSnippet(post, { home: post.target_page === "index" });
-  const updatedTargetHtml = upsertSnippetInHtml(targetFile.content, post.slug, cardSnippet, containerClass);
-  await ghPutFile(config, targetFilename, updatedTargetHtml, `cms: list ${post.slug} on ${targetFilename}`, targetFile.sha);
 
-  // Home featured placement + the hand-curated English/Urdu series lists live in index.html
+  // The latest posts and the English/Urdu series lists live in index.html.
   const homeFile = await ghGetFile(config, "index.html");
-  if (homeFile) {
-    let homeHtml = homeFile.content;
+  if (!homeFile) {
+    throw new Error("Could not read index.html from the repository.");
+  }
+  let homeHtml = updateLatestPosts(homeFile.content, await getLatestPublishedPosts());
 
-    if (post.target_page !== "index") {
-      const homeSnippet = buildCardSnippet(post, { home: true });
-      homeHtml = post.featured_on_home
-        ? upsertSnippetInHtml(homeHtml, post.slug, homeSnippet, "archive-teaser-grid", "home")
-        : removeSnippetFromHtml(homeHtml, post.slug, "home");
-    }
+  if (post.language === "en") {
+    homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "english-series-list", "series");
+  } else if (post.language === "ur") {
+    homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "urdu-series-list", "series");
+  }
 
-    if (post.language === "en") {
-      homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "english-series-list", "series");
-    } else if (post.language === "ur") {
-      homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "urdu-series-list", "series");
-    }
-
-    if (homeHtml !== homeFile.content) {
-      await ghPutFile(config, "index.html", homeHtml, `cms: update home page for ${post.slug}`, homeFile.sha);
-    }
+  if (homeHtml !== homeFile.content) {
+    await ghPutFile(config, "index.html", homeHtml, `cms: update home page for ${post.slug}`, homeFile.sha);
   }
 
   return {
@@ -301,18 +326,20 @@ async function unpublishPostFromGitHub(post) {
     await ghDeleteFile(config, articlePath, `cms: remove ${post.slug}`, existingArticle.sha);
   }
 
-  const targetFilename = getTargetPageFilename(post.target_page);
-  const targetFile = await ghGetFile(config, targetFilename);
-  if (targetFile) {
-    const updated = removeSnippetFromHtml(targetFile.content, post.slug);
-    if (updated !== targetFile.content) {
-      await ghPutFile(config, targetFilename, updated, `cms: unlist ${post.slug} from ${targetFilename}`, targetFile.sha);
+  if (post.target_page !== "index") {
+    const targetFilename = getTargetPageFilename(post.target_page);
+    const targetFile = await ghGetFile(config, targetFilename);
+    if (targetFile) {
+      const updated = removeSnippetFromHtml(targetFile.content, post.slug);
+      if (updated !== targetFile.content) {
+        await ghPutFile(config, targetFilename, updated, `cms: unlist ${post.slug} from ${targetFilename}`, targetFile.sha);
+      }
     }
   }
 
   const homeFile = await ghGetFile(config, "index.html");
   if (homeFile) {
-    let homeHtml = removeSnippetFromHtml(homeFile.content, post.slug, "home");
+    let homeHtml = updateLatestPosts(homeFile.content, await getLatestPublishedPosts());
     homeHtml = removeSnippetFromHtml(homeHtml, post.slug, "series");
     if (homeHtml !== homeFile.content) {
       await ghPutFile(config, "index.html", homeHtml, `cms: unfeature ${post.slug} from home`, homeFile.sha);

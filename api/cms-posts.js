@@ -190,7 +190,7 @@ module.exports = async function handler(request, response) {
       const deletedRows = await res.json().catch(() => []);
       const deletedPost = Array.isArray(deletedRows) ? deletedRows[0] : null;
       if (deletedPost) {
-        await unpublishPostFromGitHub(deletedPost).catch(() => {}); // best-effort, don't fail the delete
+        await unpublishPostFromGitHub(deletedPost);
       }
       return jsonResponse(response, 200, { success: true, slug });
     } catch (error) {

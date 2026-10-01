@@ -505,6 +505,13 @@ main {
   line-height: 1.55;
 }
 
+.archive-teaser[lang="ur"] h3,
+.archive-teaser[lang="ur"] p {
+  font-family: "Noto Nastaliq Urdu", serif;
+  letter-spacing: 0;
+  line-height: 2;
+}
+
 .archive-teaser .inline-link {
   margin-top: 0.15rem;
 }

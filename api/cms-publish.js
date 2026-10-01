@@ -104,7 +104,7 @@ module.exports = async function handler(request, response) {
 
     if (post.status !== "published") {
       // Pull it off the live site if it was previously published and has since been set back to draft
-      await unpublishPostFromGitHub(post).catch(() => {});
+      await unpublishPostFromGitHub(post);
       return jsonResponse(response, 200, { published: false, message: "Saved as draft — not live on the website." });
     }
 

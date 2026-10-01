@@ -954,6 +954,23 @@
       </section>
     </main>
 
+    <!-- MODAL: PUBLISH RESULT -->
+    <div id="publishResultModal" class="cms-modal-overlay">
+      <div class="cms-modal" style="max-width: 520px;">
+        <div class="cms-modal-header">
+          <h3 id="publishResultTitle">Publish Result</h3>
+          <button class="cms-modal-close" onclick="closePublishResultModal()">&times;</button>
+        </div>
+        <div class="cms-modal-body">
+          <p id="publishResultMessage" style="font-size: 0.95rem; line-height: 1.6;"></p>
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+            <a id="publishResultViewLink" href="#" target="_blank" class="cms-btn-secondary" style="display: none;">View Live Article &nearr;</a>
+            <button class="cms-btn-primary" onclick="closePublishResultModal()">OK</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
     <!-- MODAL 1: STATIC HTML GENERATOR -->
     <div id="htmlModal" class="cms-modal-overlay">
       <div class="cms-modal">
@@ -1619,12 +1636,64 @@
           const data = await res.json();
           if (!res.ok) throw new Error(data.error || "Failed to save post.");
 
-          showAlert(`Article "${title}" saved successfully (${status})!`, "success");
           currentEditingPost = data.post;
           await loadPosts();
+          await publishAndShowResult(slug, status);
         } catch (err) {
           showAlert(err.message, "danger");
         }
+      }
+
+      // Triggers the GitHub commit that actually makes the article live, then reports a clear result
+      async function publishAndShowResult(slug, status) {
+        if (status !== "published") {
+          showPublishResultModal({
+            title: "Saved as Draft",
+            message: `"${slug}" was saved as a draft. It is not live on the website yet — switch its status to "Published" and save again when you're ready.`,
+          });
+          return;
+        }
+
+        try {
+          const res = await fetch("/api/cms-publish", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${currentSessionToken}`,
+            },
+            body: JSON.stringify({ slug }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to publish to the live website.");
+
+          showPublishResultModal({
+            title: "✅ Article Published",
+            message: `Your article is now live on the website.`,
+            url: data.url,
+          });
+        } catch (err) {
+          showPublishResultModal({
+            title: "⚠️ Saved, but not published live",
+            message: `The article was saved to the CMS, but publishing it to the live website failed: ${err.message}. You can use "Export HTML" below to publish it manually instead.`,
+          });
+        }
+      }
+
+      function showPublishResultModal({ title, message, url }) {
+        document.getElementById("publishResultTitle").textContent = title;
+        document.getElementById("publishResultMessage").textContent = message;
+        const link = document.getElementById("publishResultViewLink");
+        if (url) {
+          link.href = url;
+          link.style.display = "inline-flex";
+        } else {
+          link.style.display = "none";
+        }
+        document.getElementById("publishResultModal").classList.add("open");
+      }
+
+      function closePublishResultModal() {
+        document.getElementById("publishResultModal").classList.remove("open");
       }
 
       async function deletePost(slug) {

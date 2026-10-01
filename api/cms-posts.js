@@ -1,3 +1,5 @@
+const { unpublishPostFromGitHub } = require("./_github-publish");
+
 function jsonResponse(response, status, value) {
   response.setHeader("cache-control", "no-store");
   response.setHeader("x-content-type-options", "nosniff");
@@ -179,10 +181,16 @@ module.exports = async function handler(request, response) {
     try {
       const res = await supabaseRequest(config, `posts?slug=eq.${encodeURIComponent(slug)}`, {
         method: "DELETE",
+        headers: { Prefer: "return=representation" },
       });
       if (!res.ok) {
         const text = await res.text();
         return jsonResponse(response, res.status, { error: `Failed to delete post: ${text}` });
+      }
+      const deletedRows = await res.json().catch(() => []);
+      const deletedPost = Array.isArray(deletedRows) ? deletedRows[0] : null;
+      if (deletedPost) {
+        await unpublishPostFromGitHub(deletedPost).catch(() => {}); // best-effort, don't fail the delete
       }
       return jsonResponse(response, 200, { success: true, slug });
     } catch (error) {

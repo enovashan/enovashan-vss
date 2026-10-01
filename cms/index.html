@@ -1482,8 +1482,16 @@
 
       // Converts pasted rich-text HTML (bold/italic/headings/links/lists) into our Markdown dialect
       function htmlToMarkdown(html) {
+        // Strip Word/Office's embedded <style>/<xml> blocks and HTML comments BEFORE parsing as DOM.
+        // Word's clipboard fragment boundaries sometimes land inside these blocks, which makes the
+        // browser fail to parse them as real comments — leaking raw @font-face/mso-* CSS as visible text.
+        const sanitizedHtml = html
+          .replace(/<style[\s\S]*?<\/style>/gi, "")
+          .replace(/<xml[\s\S]*?<\/xml>/gi, "")
+          .replace(/<!--[\s\S]*?-->/g, "");
+
         const container = document.createElement("div");
-        container.innerHTML = html;
+        container.innerHTML = sanitizedHtml;
 
         // Word/Docs frequently export distinct paragraphs as a single <p> with <br> line breaks
         // instead of separate <p> elements. But some <br>s are just a cosmetic mid-sentence line

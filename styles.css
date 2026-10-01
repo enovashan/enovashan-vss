@@ -1291,6 +1291,14 @@ main {
   line-height: 2;
 }
 
+/* Nastaliq/Arabic script letterforms are connected and have no true italic face;
+   browser-synthesized oblique garbles the joins, so emphasize with color instead */
+.archive-article--urdu .archive-article__body em,
+.archive-article--urdu .archive-article__body i {
+  font-style: normal;
+  color: var(--green-deep);
+}
+
 .comments-section[dir="rtl"] .comment-form,
 .comments-section[dir="rtl"] .comment-list {
   direction: rtl;

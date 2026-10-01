@@ -1455,8 +1455,21 @@
           if (node.nodeType !== Node.ELEMENT_NODE) return "";
           const tag = node.tagName.toLowerCase();
           const content = inline(node);
-          const isBold = tag === "b" || tag === "strong" || /bold/i.test(node.style?.fontWeight || "") || Number(node.style?.fontWeight) >= 600;
-          const isItalic = tag === "i" || tag === "em" || node.style?.fontStyle === "italic";
+          // Word stores bold/italic for RTL/complex-script (Urdu, Arabic) text under separate
+          // mso-bidi-font-weight / mso-bidi-font-style properties, not the plain font-weight/font-style
+          // that node.style exposes — so check the raw style attribute text too.
+          const rawStyle = (node.getAttribute("style") || "").toLowerCase();
+          const isBold =
+            tag === "b" ||
+            tag === "strong" ||
+            /bold/i.test(node.style?.fontWeight || "") ||
+            Number(node.style?.fontWeight) >= 600 ||
+            /(?:^|;)\s*(?:mso-bidi-)?font-weight\s*:\s*(bold|[6-9]00)/.test(rawStyle);
+          const isItalic =
+            tag === "i" ||
+            tag === "em" ||
+            node.style?.fontStyle === "italic" ||
+            /(?:^|;)\s*(?:mso-bidi-)?font-style\s*:\s*italic/.test(rawStyle);
           switch (tag) {
             case "br":
               return "\n";

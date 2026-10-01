@@ -1127,9 +1127,9 @@ main {
 }
 
 .page-hero[dir="rtl"] h1 {
-  margin: 0.35rem 0 0.55rem;
-  font-size: clamp(2.4rem, 5vw, 4.5rem);
-  line-height: 1.65;
+  margin: 0.35rem 0 0.7rem;
+  font-size: clamp(1.5rem, 2.6vw, 2.6rem);
+  line-height: 2;
 }
 
 .tight-hero {

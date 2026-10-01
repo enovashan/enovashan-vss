@@ -1499,12 +1499,19 @@
         // text right before it actually ends a sentence; otherwise it's just a word space.
         const SENTENCE_END_RE = /[.!?۔؟]$/;
 
+        // Word commonly appends invisible bidi control marks (RLM/LRM/ALM) right after punctuation,
+        // and Arabic prose often closes a sentence inside guillemets/quotes (»”’)]}) — strip those
+        // trailing decorations first so the sentence-ending check below isn't fooled by them.
+        function stripTrailingDecoration(str) {
+          return str.replace(/[\s\u200B-\u200F\u061C\uFEFF»"'”’)\]}]+$/, "");
+        }
+
         function inline(node) {
           let result = "";
           for (const child of Array.from(node.childNodes)) {
             if (child.nodeType === Node.ELEMENT_NODE && child.tagName.toLowerCase() === "br") {
               const trimmed = result.replace(/[ \t]+$/, "");
-              result = SENTENCE_END_RE.test(trimmed) ? `${trimmed}\n\n` : `${trimmed} `;
+              result = SENTENCE_END_RE.test(stripTrailingDecoration(trimmed)) ? `${trimmed}\n\n` : `${trimmed} `;
             } else {
               result += walkInline(child);
             }
@@ -1603,7 +1610,7 @@
         const NON_PROSE_START_RE = /^(#{1,6}\s|>|\*{1,3}[^*]|-\s|\d+\.\s|!\[|---$)/;
         const isMergeableProse = (block) => {
           const trimmed = block.trim();
-          return trimmed && !NON_PROSE_START_RE.test(trimmed) && !SENTENCE_END_RE.test(trimmed);
+          return trimmed && !NON_PROSE_START_RE.test(trimmed) && !SENTENCE_END_RE.test(stripTrailingDecoration(trimmed));
         };
 
         const blocks = rawMarkdown.split(/\n\n+/);

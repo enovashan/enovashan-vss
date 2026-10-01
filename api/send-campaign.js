@@ -58,19 +58,46 @@ module.exports = async function handler(request, response) {
       return jsonResponse(response, 405, { error: "Method not allowed." });
     }
 
+    const config = getSupabaseConfig();
+    if (!config) {
+      return jsonResponse(response, 503, { error: "Subscriber storage is not configured yet." });
+    }
+
     const secret = process.env.CAMPAIGN_SECRET;
-    if (!secret || request.headers["x-campaign-secret"] !== secret) {
+    const hasSecret = Boolean(secret && request.headers["x-campaign-secret"] === secret);
+    let hasAdminAuth = false;
+
+    if (!hasSecret) {
+      const authHeader = request.headers.authorization;
+      if (authHeader && authHeader.startsWith("Bearer ")) {
+        const token = authHeader.slice(7).trim();
+        try {
+          const authCheck = await fetch(`${config.url}/auth/v1/user`, {
+            headers: {
+              apikey: config.secretKey,
+              authorization: `Bearer ${token}`,
+            },
+          });
+          if (authCheck.ok) {
+            const user = await authCheck.json();
+            const allowedAdmin = (process.env.ADMIN_EMAIL || process.env.COMMENT_NOTIFY_EMAIL || "enovashan@gmail.com").toLowerCase().trim();
+            if (user && user.email && user.email.toLowerCase().trim() === allowedAdmin) {
+              hasAdminAuth = true;
+            }
+          }
+        } catch {
+          // Token verification failed
+        }
+      }
+    }
+
+    if (!hasSecret && !hasAdminAuth) {
       return jsonResponse(response, 401, { error: "Not authorized." });
     }
 
     const resendApiKey = process.env.RESEND_API_KEY;
     if (!resendApiKey) {
       return jsonResponse(response, 503, { error: "RESEND_API_KEY is not configured." });
-    }
-
-    const config = getSupabaseConfig();
-    if (!config) {
-      return jsonResponse(response, 503, { error: "Subscriber storage is not configured yet." });
     }
 
     let input;

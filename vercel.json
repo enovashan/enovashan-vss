@@ -1,0 +1,7 @@
+{
+  "cleanUrls": true,
+  "rewrites": [
+    { "source": "/cms", "destination": "/cms/index.html" },
+    { "source": "/cms/", "destination": "/cms/index.html" }
+  ]
+}

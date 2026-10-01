@@ -1,0 +1,1901 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Enovashan — Editorial Studio CMS</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400;1,600&family=Manrope:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
+    <style>
+      :root {
+        --cms-bg: #eceae3;
+        --cms-card: #fdfcf9;
+        --cms-border: rgba(23, 38, 60, 0.18);
+        --cms-border-dark: rgba(23, 38, 60, 0.45);
+        --cms-accent: #0f2237;
+        --cms-green: #2d6a4f;
+        --cms-green-bg: #e8f5e9;
+        --cms-warn: #b45309;
+        --cms-warn-bg: #fef3c7;
+      }
+
+      body {
+        background: var(--cms-bg);
+        color: var(--ink);
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      /* Topbar adjustments for CMS */
+      .cms-topbar {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.9rem 1.75rem;
+        background: rgba(247, 244, 239, 0.97);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--cms-border-dark);
+      }
+
+      .cms-brand-group {
+        display: flex;
+        align-items: center;
+        gap: 0.85rem;
+      }
+
+      .cms-badge {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        padding: 0.2rem 0.55rem;
+        background: var(--navy);
+        color: #fff;
+        border-radius: 3px;
+      }
+
+      .cms-nav-tabs {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .cms-tab-btn {
+        background: transparent;
+        border: 1px solid transparent;
+        padding: 0.45rem 0.9rem;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--ink);
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+      }
+
+      .cms-tab-btn:hover {
+        background: rgba(23, 38, 60, 0.06);
+      }
+
+      .cms-tab-btn.active {
+        background: var(--navy);
+        color: #fff;
+      }
+
+      .cms-user-pill {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        font-size: 0.82rem;
+      }
+
+      .cms-user-email {
+        font-family: "IBM Plex Mono", monospace;
+        color: var(--muted);
+      }
+
+      .cms-btn-logout {
+        background: transparent;
+        border: 1px solid var(--cms-border-dark);
+        padding: 0.35rem 0.75rem;
+        font-size: 0.8rem;
+        font-weight: 600;
+        color: var(--ink);
+        cursor: pointer;
+        border-radius: 4px;
+      }
+
+      .cms-btn-logout:hover {
+        background: #fee2e2;
+        border-color: #ef4444;
+        color: #b91c1c;
+      }
+
+      /* Main container */
+      .cms-container {
+        max-width: 1400px;
+        width: 100%;
+        margin: 0 auto;
+        padding: 1.5rem;
+        flex: 1;
+      }
+
+      /* Auth View */
+      .cms-auth-box {
+        max-width: 440px;
+        margin: 4rem auto;
+        background: var(--cms-card);
+        border: 1px solid var(--cms-border-dark);
+        padding: 2.5rem;
+        border-radius: 6px;
+        box-shadow: 0 10px 30px rgba(16, 29, 40, 0.06);
+      }
+
+      .cms-auth-header {
+        text-align: center;
+        margin-bottom: 2rem;
+      }
+
+      .cms-auth-header h1 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 2.2rem;
+        margin: 0.5rem 0 0.3rem;
+        color: var(--heading);
+      }
+
+      .cms-auth-header p {
+        font-size: 0.88rem;
+        color: var(--muted);
+        margin: 0;
+      }
+
+      .cms-form-group {
+        margin-bottom: 1.25rem;
+      }
+
+      .cms-form-group label {
+        display: block;
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        margin-bottom: 0.35rem;
+        color: var(--navy);
+      }
+
+      .cms-form-group input,
+      .cms-form-group select,
+      .cms-form-group textarea {
+        width: 100%;
+        padding: 0.65rem 0.85rem;
+        background: #fff;
+        border: 1px solid var(--cms-border-dark);
+        border-radius: 4px;
+        color: var(--ink);
+        font-family: inherit;
+        font-size: 0.92rem;
+      }
+
+      .cms-form-group input:focus,
+      .cms-form-group select:focus,
+      .cms-form-group textarea:focus {
+        outline: none;
+        border-color: var(--navy);
+        box-shadow: 0 0 0 2px rgba(15, 34, 55, 0.15);
+      }
+
+      .cms-btn-primary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: var(--navy);
+        color: #fff;
+        border: 1px solid var(--navy);
+        padding: 0.7rem 1.4rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+      }
+
+      .cms-btn-primary:hover:not(:disabled) {
+        background: #1a3a5e;
+      }
+
+      .cms-btn-secondary {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 0.5rem;
+        background: #fff;
+        color: var(--ink);
+        border: 1px solid var(--cms-border-dark);
+        padding: 0.65rem 1.25rem;
+        font-size: 0.88rem;
+        font-weight: 700;
+        cursor: pointer;
+        border-radius: 4px;
+        transition: all 0.15s ease;
+      }
+
+      .cms-btn-secondary:hover:not(:disabled) {
+        background: #f4f2eb;
+      }
+
+      .cms-btn-success {
+        background: var(--cms-green);
+        color: #fff;
+        border-color: var(--cms-green);
+      }
+
+      .cms-btn-success:hover:not(:disabled) {
+        background: #204e39;
+      }
+
+      .cms-alert {
+        padding: 0.8rem 1rem;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-bottom: 1.25rem;
+        display: none;
+      }
+
+      .cms-alert.show {
+        display: block;
+      }
+
+      .cms-alert-danger {
+        background: #fee2e2;
+        color: #991b1b;
+        border: 1px solid #f87171;
+      }
+
+      .cms-alert-success {
+        background: #dcfce7;
+        color: #166534;
+        border: 1px solid #86efac;
+      }
+
+      .cms-alert-info {
+        background: #e0f2fe;
+        color: #075985;
+        border: 1px solid #7dd3fc;
+      }
+
+      /* Post List View */
+      .cms-posts-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        flex-wrap: wrap;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid var(--cms-border);
+      }
+
+      .cms-posts-header h2 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 2.2rem;
+        margin: 0;
+        color: var(--heading);
+      }
+
+      .cms-filters {
+        display: flex;
+        gap: 0.4rem;
+        flex-wrap: wrap;
+        margin-bottom: 1.25rem;
+      }
+
+      .cms-filter-btn {
+        background: #fff;
+        border: 1px solid var(--cms-border);
+        padding: 0.35rem 0.75rem;
+        font-size: 0.78rem;
+        font-weight: 600;
+        cursor: pointer;
+        border-radius: 3px;
+      }
+
+      .cms-filter-btn.active {
+        background: var(--navy);
+        color: #fff;
+        border-color: var(--navy);
+      }
+
+      .cms-post-card {
+        background: var(--cms-card);
+        border: 1px solid var(--cms-border);
+        border-radius: 6px;
+        padding: 1.25rem 1.5rem;
+        margin-bottom: 1rem;
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 1.5rem;
+        transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .cms-post-card:hover {
+        border-color: var(--cms-border-dark);
+        box-shadow: 0 4px 12px rgba(16, 29, 40, 0.04);
+      }
+
+      .cms-post-meta-row {
+        display: flex;
+        align-items: center;
+        gap: 0.6rem;
+        margin-bottom: 0.4rem;
+        flex-wrap: wrap;
+      }
+
+      .cms-post-badge {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        padding: 0.15rem 0.5rem;
+        border-radius: 3px;
+        background: #eee;
+        color: #555;
+      }
+
+      .cms-badge-published {
+        background: var(--cms-green-bg);
+        color: var(--cms-green);
+        border: 1px solid rgba(45, 106, 79, 0.3);
+      }
+
+      .cms-badge-draft {
+        background: var(--cms-warn-bg);
+        color: var(--cms-warn);
+        border: 1px solid rgba(180, 83, 9, 0.3);
+      }
+
+      .cms-post-title {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.5rem;
+        margin: 0.2rem 0 0.4rem;
+        color: var(--heading);
+      }
+
+      .cms-post-summary {
+        font-size: 0.92rem;
+        color: var(--ink-soft);
+        margin: 0 0 0.6rem;
+        line-height: 1.5;
+        max-width: 820px;
+      }
+
+      .cms-post-slug {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.75rem;
+        color: var(--muted);
+      }
+
+      .cms-post-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        min-width: 160px;
+      }
+
+      .cms-post-actions button {
+        width: 100%;
+        text-align: center;
+      }
+
+      /* Composer & Editor View */
+      .cms-editor-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1.5rem;
+        min-height: 700px;
+      }
+
+      @media (max-width: 1024px) {
+        .cms-editor-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+
+      .cms-meta-panel {
+        background: var(--cms-card);
+        border: 1px solid var(--cms-border);
+        border-radius: 6px;
+        padding: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .cms-meta-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 1rem;
+      }
+
+      .cms-editor-pane {
+        background: var(--cms-card);
+        border: 1px solid var(--cms-border);
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .cms-pane-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.65rem 1rem;
+        background: #f4f2eb;
+        border-bottom: 1px solid var(--cms-border);
+        font-size: 0.78rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        color: var(--navy);
+      }
+
+      .cms-toolbar {
+        display: flex;
+        align-items: center;
+        gap: 0.3rem;
+        flex-wrap: wrap;
+        padding: 0.5rem 0.75rem;
+        background: #faf8f5;
+        border-bottom: 1px solid var(--cms-border);
+      }
+
+      .cms-tool-btn {
+        background: #fff;
+        border: 1px solid var(--cms-border);
+        border-radius: 3px;
+        padding: 0.25rem 0.55rem;
+        font-size: 0.8rem;
+        font-family: inherit;
+        font-weight: 600;
+        cursor: pointer;
+        color: var(--navy);
+        transition: all 0.1s ease;
+      }
+
+      .cms-tool-btn:hover {
+        background: var(--navy);
+        color: #fff;
+        border-color: var(--navy);
+      }
+
+      .cms-textarea {
+        flex: 1;
+        width: 100%;
+        min-height: 520px;
+        border: none;
+        padding: 1.25rem;
+        font-family: "IBM Plex Mono", "Courier New", monospace;
+        font-size: 0.95rem;
+        line-height: 1.7;
+        color: var(--ink);
+        background: #fff;
+        resize: vertical;
+      }
+
+      .cms-textarea:focus {
+        outline: none;
+      }
+
+      .cms-preview-pane {
+        background: #fff;
+        border: 1px solid var(--cms-border);
+        border-radius: 6px;
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+      }
+
+      .cms-preview-content {
+        flex: 1;
+        padding: 2rem 2.5rem;
+        overflow-y: auto;
+        max-height: 750px;
+        background: var(--bg);
+      }
+
+      .cms-preview-hero {
+        border-bottom: 1px solid rgba(23, 38, 60, 0.2);
+        padding-bottom: 1.5rem;
+        margin-bottom: 1.5rem;
+      }
+
+      .cms-preview-hero .meta-label {
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.75rem;
+        text-transform: uppercase;
+        color: var(--muted);
+        margin-bottom: 0.5rem;
+      }
+
+      .cms-preview-hero h1 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 2.5rem;
+        line-height: 1.15;
+        margin: 0.2rem 0 0.8rem;
+        color: var(--heading);
+      }
+
+      .cms-preview-hero p {
+        font-size: 1.1rem;
+        line-height: 1.6;
+        color: var(--ink-soft);
+        margin: 0;
+      }
+
+      /* RTL styling for preview */
+      .rtl-mode {
+        direction: rtl;
+        text-align: right;
+        font-family: "Noto Nastaliq Urdu", serif;
+      }
+
+      .rtl-mode .cms-preview-hero h1 {
+        font-family: "Noto Nastaliq Urdu", serif;
+        line-height: 1.8;
+      }
+
+      .rtl-mode .archive-article__body {
+        font-family: "Noto Nastaliq Urdu", serif;
+        line-height: 2.2;
+      }
+
+      .rtl-mode .archive-article__body blockquote {
+        border-left: none;
+        border-right: 3px solid var(--green-deep);
+        padding-left: 0;
+        padding-right: 1.2rem;
+      }
+
+      /* Action footer */
+      .cms-editor-footer {
+        position: sticky;
+        bottom: 0;
+        background: rgba(247, 244, 239, 0.98);
+        border-top: 1px solid var(--cms-border-dark);
+        padding: 1rem 1.75rem;
+        margin: 1.5rem -1.5rem -1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
+        z-index: 40;
+      }
+
+      .cms-actions-group {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        flex-wrap: wrap;
+      }
+
+      /* Modals */
+      .cms-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 34, 55, 0.6);
+        backdrop-filter: blur(4px);
+        z-index: 100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+      }
+
+      .cms-modal-overlay.open {
+        display: flex;
+      }
+
+      .cms-modal {
+        background: var(--cms-card);
+        border: 1px solid var(--cms-border-dark);
+        border-radius: 8px;
+        width: 100%;
+        max-width: 860px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 20px 40px rgba(15, 34, 55, 0.25);
+        overflow: hidden;
+      }
+
+      .cms-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--cms-border);
+      }
+
+      .cms-modal-header h3 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 1.8rem;
+        margin: 0;
+        color: var(--heading);
+      }
+
+      .cms-modal-close {
+        background: transparent;
+        border: none;
+        font-size: 1.5rem;
+        line-height: 1;
+        cursor: pointer;
+        color: var(--muted);
+      }
+
+      .cms-modal-close:hover {
+        color: var(--ink);
+      }
+
+      .cms-modal-body {
+        padding: 1.5rem;
+        overflow-y: auto;
+        flex: 1;
+      }
+
+      .cms-code-block {
+        background: #151d28;
+        color: #e2e8f0;
+        padding: 1.25rem;
+        border-radius: 6px;
+        font-family: "IBM Plex Mono", monospace;
+        font-size: 0.85rem;
+        line-height: 1.6;
+        overflow-x: auto;
+        white-space: pre;
+        max-height: 380px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .cms-email-preview {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 6px;
+        padding: 2rem;
+        max-width: 580px;
+        margin: 1rem auto;
+        font-family: Georgia, serif;
+      }
+
+      .cms-tab-nav {
+        display: flex;
+        gap: 0.5rem;
+        border-bottom: 1px solid var(--cms-border);
+        margin-bottom: 1rem;
+      }
+
+      .cms-tab-nav button {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid transparent;
+        padding: 0.6rem 1rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        cursor: pointer;
+        color: var(--muted);
+      }
+
+      .cms-tab-nav button.active {
+        color: var(--navy);
+        border-bottom-color: var(--navy);
+      }
+
+      .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        background: var(--cms-card);
+        border: 1px dashed var(--cms-border-dark);
+        border-radius: 6px;
+      }
+
+      .empty-state h3 {
+        font-family: "Cormorant Garamond", Georgia, serif;
+        font-size: 2rem;
+        margin: 0.5rem 0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Topbar -->
+    <header class="cms-topbar">
+      <div class="cms-brand-group">
+        <a class="brand" href="/" aria-label="Enovashan home">
+          <div class="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 58 58" focusable="false">
+              <path class="brand-mark__frame" d="M15 49V11h29v17"/>
+              <path class="brand-mark__n" d="M22 43V22l16 18V22"/>
+              <circle class="brand-mark__signal" cx="45" cy="12" r="4"/>
+            </svg>
+          </div>
+          <div class="brand-name">Enovashan</div>
+        </a>
+        <span class="cms-badge">Editorial Studio</span>
+      </div>
+
+      <nav class="cms-nav-tabs" id="cmsNavTabs" style="display: none;">
+        <button class="cms-tab-btn active" id="tabArticlesBtn" onclick="switchMainView('articles')">Articles</button>
+        <button class="cms-tab-btn" id="tabEditorBtn" onclick="switchMainView('editor')">+ New Article</button>
+      </nav>
+
+      <div class="cms-user-pill" id="cmsUserPill" style="display: none;">
+        <span class="cms-user-email" id="currentUserDisplay"></span>
+        <a href="/" target="_blank" class="cms-btn-secondary" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">View Site &nearr;</a>
+        <button class="cms-btn-logout" onclick="handleSignOut()">Sign Out</button>
+      </div>
+    </header>
+
+    <main class="cms-container">
+      <!-- Alerts -->
+      <div id="globalAlert" class="cms-alert"></div>
+
+      <!-- VIEW 1: AUTHENTICATION -->
+      <section id="authSection" class="cms-auth-box">
+        <div class="cms-auth-header">
+          <div class="brand-mark" style="margin: 0 auto 0.5rem;">
+            <svg viewBox="0 0 58 58" focusable="false">
+              <path class="brand-mark__frame" d="M15 49V11h29v17"/>
+              <path class="brand-mark__n" d="M22 43V22l16 18V22"/>
+              <circle class="brand-mark__signal" cx="45" cy="12" r="4"/>
+            </svg>
+          </div>
+          <h1>Editorial Studio</h1>
+          <p>Sign in with your administrator Supabase credentials</p>
+        </div>
+
+        <form id="loginForm" onsubmit="handleSignIn(event)">
+          <div class="cms-form-group">
+            <label for="loginEmail">Email Address</label>
+            <input type="email" id="loginEmail" required autocomplete="email" placeholder="enovashan@gmail.com" />
+          </div>
+          <div class="cms-form-group">
+            <label for="loginPassword">Password</label>
+            <input type="password" id="loginPassword" required autocomplete="current-password" placeholder="••••••••••••" />
+          </div>
+          <button type="submit" id="loginSubmitBtn" class="cms-btn-primary" style="width: 100%; margin-top: 0.5rem;">
+            Sign In with Supabase
+          </button>
+        </form>
+      </section>
+
+      <!-- VIEW 2: ARTICLES DASHBOARD -->
+      <section id="articlesSection" style="display: none;">
+        <div class="cms-posts-header">
+          <div>
+            <h2>Articles & Dispatches</h2>
+            <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">
+              Draft, edit, generate static HTML files, and notify subscribers.
+            </p>
+          </div>
+          <button class="cms-btn-primary" onclick="startNewArticle()">
+            + Write New Article
+          </button>
+        </div>
+
+        <div class="cms-filters" id="postFilters">
+          <button class="cms-filter-btn active" data-filter="all" onclick="filterPosts('all', this)">All (<span id="countAll">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="stories" onclick="filterPosts('stories', this)">Stories (<span id="countStories">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="recipes" onclick="filterPosts('recipes', this)">Recipes (<span id="countRecipes">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="stories-urdu" onclick="filterPosts('stories-urdu', this)">Stories Urdu (<span id="countUrdu">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="stories-arabic" onclick="filterPosts('stories-arabic', this)">Stories Arabic (<span id="countArabic">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="books" onclick="filterPosts('books', this)">Book Notes (<span id="countBooks">0</span>)</button>
+          <button class="cms-filter-btn" data-filter="index" onclick="filterPosts('index', this)">Lead Story (<span id="countHome">0</span>)</button>
+        </div>
+
+        <div id="postsList">
+          <div class="empty-state">
+            <h3>Loading articles…</h3>
+            <p style="color: var(--muted);">Connecting to Supabase repository</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 3: COMPOSER & MARKDOWN EDITOR -->
+      <section id="editorSection" style="display: none;">
+        <!-- Metadata Panel -->
+        <div class="cms-meta-panel">
+          <div class="cms-meta-grid">
+            <div class="cms-form-group" style="grid-column: span 2;">
+              <label for="postTitle">Article Title</label>
+              <input type="text" id="postTitle" placeholder="e.g. The Architecture of Good Work" oninput="handleTitleChange(this.value)" required />
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postSlug">Slug (<span id="slugPreviewText">my-post</span>.html)</label>
+              <input type="text" id="postSlug" placeholder="the-architecture-of-good-work" oninput="handleSlugChange(this.value)" required />
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postTargetPage">Target Page to Post</label>
+              <select id="postTargetPage" onchange="handleTargetPageChange(this.value)">
+                <option value="stories">Stories (stories.html)</option>
+                <option value="recipes">Recipes (recipes.html)</option>
+                <option value="stories-urdu">Stories Urdu (stories-urdu.html)</option>
+                <option value="stories-arabic">Stories Arabic (stories-arabic.html)</option>
+                <option value="books">Book notes (books.html)</option>
+                <option value="index">Lead Story (index.html)</option>
+              </select>
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postCategory">Category / Meta Label</label>
+              <input type="text" id="postCategory" placeholder="Life · Ideas or Weeknight" oninput="updateLivePreview()" />
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postReadTime">Reading / Prep Time</label>
+              <input type="text" id="postReadTime" placeholder="7 min read or 30 min" oninput="updateLivePreview()" />
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postLanguage">Language / Direction</label>
+              <select id="postLanguage" onchange="handleLanguageChange(this.value)">
+                <option value="en">English (LTR)</option>
+                <option value="ur">اردو — Urdu (RTL)</option>
+                <option value="ar">العربية — Arabic (RTL)</option>
+              </select>
+            </div>
+
+            <div class="cms-form-group">
+              <label for="postStatus">Publication Status</label>
+              <select id="postStatus">
+                <option value="published">Published</option>
+                <option value="draft">Draft</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="margin-top: 0.75rem; display: flex; gap: 1.5rem; align-items: center; flex-wrap: wrap;">
+            <label style="display: flex; align-items: center; gap: 0.5rem; cursor: pointer; font-size: 0.85rem; font-weight: 600;">
+              <input type="checkbox" id="postFeaturedHome" /> Also feature on Home page (index.html lead section)
+            </label>
+            <div style="font-size: 0.8rem; color: var(--muted);">
+              Publish Date: <span id="postPublishedDateDisplay"></span>
+            </div>
+          </div>
+
+          <div class="cms-form-group" style="margin-top: 1rem; margin-bottom: 0;">
+            <label for="postSummary">Excerpt / Summary (for listing card & subscriber email)</label>
+            <textarea id="postSummary" rows="2" placeholder="Brief 1-2 sentence description..." oninput="updateLivePreview()"></textarea>
+          </div>
+        </div>
+
+        <!-- Editor & Preview Grid -->
+        <div class="cms-editor-grid">
+          <!-- Left: Markdown Input -->
+          <div class="cms-editor-pane">
+            <div class="cms-pane-header">
+              <span>Markdown Source</span>
+              <span style="font-family:'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--muted);" id="wordCount">0 words</span>
+            </div>
+            <div class="cms-toolbar">
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('## ', '')" title="Heading 2">H2</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('### ', '')" title="Heading 3">H3</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('**', '**')" title="Bold"><strong>B</strong></button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('*', '*')" title="Italic"><em>I</em></button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('> ', '')" title="Quote">&ldquo; Quote</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('- ', '')" title="Bullet List">&bull; List</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('1. ', '')" title="Numbered List">1. List</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('[', '](https://)')" title="Link">&sect; Link</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('![', '](https://example.com/image.jpg)')" title="Image">&#128247; Image</button>
+              <button type="button" class="cms-tool-btn" onclick="insertMarkdown('\n---\n', '')" title="Separator">&horbar; Line</button>
+            </div>
+            <textarea id="markdownInput" class="cms-textarea" placeholder="Start writing your article in Markdown...&#10;&#10;## Subheading&#10;Write your thoughts freely.&#10;&#10;> An insightful quote that anchors the piece." oninput="handleMarkdownInput()"></textarea>
+          </div>
+
+          <!-- Right: Live Styled Preview -->
+          <div class="cms-preview-pane">
+            <div class="cms-pane-header">
+              <span>Live Article Preview</span>
+              <span style="font-family:'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--muted);" id="previewLangLabel">EN (LTR)</span>
+            </div>
+            <div class="cms-preview-content" id="previewContainer">
+              <section class="cms-preview-hero">
+                <div class="meta-label" id="previewMetaLabel">ENOVASHAN / EDITORIAL</div>
+                <h1 id="previewTitle">Your Article Title</h1>
+                <p id="previewSummary">Your article excerpt and summary will appear here.</p>
+              </section>
+              <article class="archive-article" id="previewArticleWrapper">
+                <div class="archive-article__meta" id="previewArticleMeta">CATEGORY · TODAY</div>
+                <div class="archive-article__body" id="previewRenderedBody">
+                  <p>Start drafting on the left to see your formatted article appear in real time.</p>
+                </div>
+
+                <!-- Mockup comments section -->
+                <section class="comments-section" style="margin-top: 3rem; padding-top: 1.5rem; border-top: 1px solid var(--cms-border);">
+                  <div class="eyebrow" style="font-size:0.75rem; text-transform:uppercase; color:var(--muted);">The conversation</div>
+                  <h2 style="font-family:'Cormorant Garamond', Georgia, serif; font-size:1.8rem; margin:0.2rem 0;">Comments (0)</h2>
+                  <p style="font-size:0.85rem; color:var(--muted);">Comments widget will automatically activate on this article's slug.</p>
+                </section>
+              </article>
+            </div>
+          </div>
+        </div>
+
+        <!-- Sticky Footer Action Bar -->
+        <div class="cms-editor-footer">
+          <div>
+            <button type="button" class="cms-btn-secondary" onclick="switchMainView('articles')">
+              &larr; Back to Articles
+            </button>
+          </div>
+          <div class="cms-actions-group">
+            <button type="button" class="cms-btn-secondary" onclick="savePost('draft')">
+              Save as Draft
+            </button>
+            <button type="button" class="cms-btn-primary" onclick="savePost('published')">
+              Save &amp; Update
+            </button>
+            <button type="button" class="cms-btn-secondary" style="border-color: var(--navy);" onclick="openStaticHtmlModal()">
+              &lt;/&gt; Generate Static HTML
+            </button>
+            <button type="button" class="cms-btn-primary cms-btn-success" onclick="openCampaignModal()">
+              &#9993; Notify Subscribers
+            </button>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- MODAL 1: STATIC HTML GENERATOR -->
+    <div id="htmlModal" class="cms-modal-overlay">
+      <div class="cms-modal">
+        <div class="cms-modal-header">
+          <h3>Generated Static HTML</h3>
+          <button class="cms-modal-close" onclick="closeStaticHtmlModal()">&times;</button>
+        </div>
+        <div class="cms-modal-body">
+          <div class="cms-tab-nav">
+            <button id="modalTabFileBtn" class="active" onclick="switchModalTab('file')">Full Article (<span id="modalSlugDisplay">post</span>.html)</button>
+            <button id="modalTabCardBtn" onclick="switchModalTab('card')">Directory Listing Card</button>
+          </div>
+
+          <!-- Tab 1: Full HTML File -->
+          <div id="modalTabFile">
+            <p style="font-size: 0.88rem; color: var(--ink-soft); margin-top: 0;">
+              This is the complete, self-contained static HTML page for your article, pre-wired with header, typography, responsive styling, and comments widget.
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <button class="cms-btn-primary" onclick="downloadHtmlFile()">
+                &#128229; Download <span id="downloadBtnSlug">post</span>.html
+              </button>
+              <button class="cms-btn-secondary" onclick="copyGeneratedHtml()">
+                Copy Full HTML
+              </button>
+              <button class="cms-btn-secondary" onclick="openLivePreviewTab()">
+                Open Preview in New Tab &nearr;
+              </button>
+            </div>
+            <pre class="cms-code-block" id="generatedHtmlCode"></pre>
+          </div>
+
+          <!-- Tab 2: Directory Card Snippet -->
+          <div id="modalTabCard" style="display: none;">
+            <p style="font-size: 0.88rem; color: var(--ink-soft); margin-top: 0;">
+              Copy this card snippet and paste it into your target page:
+              <strong id="modalTargetPageInstruction">stories.html</strong> (inside the story list container).
+            </p>
+            <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem;">
+              <button class="cms-btn-primary" onclick="copyCardSnippet()">
+                Copy Card Snippet
+              </button>
+            </div>
+            <pre class="cms-code-block" id="generatedCardCode"></pre>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL 2: SUBSCRIBER NOTIFICATION (RESEND CAMPAIGN) -->
+    <div id="campaignModal" class="cms-modal-overlay">
+      <div class="cms-modal" style="max-width: 680px;">
+        <div class="cms-modal-header">
+          <h3>Notify Subscribers</h3>
+          <button class="cms-modal-close" onclick="closeCampaignModal()">&times;</button>
+        </div>
+        <div class="cms-modal-body">
+          <p style="font-size: 0.88rem; color: var(--ink-soft); margin-top: 0;">
+            Send an email dispatch to all confirmed Enovashan newsletter subscribers announcing this new publication.
+          </p>
+
+          <div class="cms-form-group">
+            <label for="campaignHeading">Dispatch Heading</label>
+            <input type="text" id="campaignHeading" oninput="updateEmailPreview()" />
+          </div>
+
+          <div class="cms-form-group">
+            <label for="campaignSummary">Summary / Teaser</label>
+            <textarea id="campaignSummary" rows="3" oninput="updateEmailPreview()"></textarea>
+          </div>
+
+          <div class="cms-form-group">
+            <label for="campaignUrl">Article URL</label>
+            <input type="url" id="campaignUrl" oninput="updateEmailPreview()" />
+          </div>
+
+          <div style="margin: 1.25rem 0 0.5rem;">
+            <span style="font-size: 0.75rem; font-weight: 700; text-transform: uppercase; color: var(--navy);">
+              Email Inbox Preview:
+            </span>
+            <div class="cms-email-preview">
+              <p style="text-transform:uppercase;letter-spacing:0.1em;font-size:11px;color:#888;margin:0 0 0.5rem;">New on Enovashan</p>
+              <h2 id="emailPreviewHeading" style="font-size:24px;line-height:1.2;margin:0.4em 0;color:#111;"></h2>
+              <p id="emailPreviewSummary" style="font-size:15px;line-height:1.6;color:#333;margin:0.8rem 0;"></p>
+              <p style="margin: 1rem 0 0;">
+                <span style="display:inline-block;font-weight:bold;color:#0f2237;border-bottom:2px solid #0f2237;">Read the full piece &rarr;</span>
+              </p>
+              <hr style="margin:1.5rem 0 1rem;border:none;border-top:1px solid #ddd;" />
+              <p style="font-size:11px;color:#999;margin:0;">
+                You're receiving this because you subscribed to the Enovashan dispatch. <span style="text-decoration:underline;">Unsubscribe</span>.
+              </p>
+            </div>
+          </div>
+
+          <div id="campaignStatusAlert" class="cms-alert"></div>
+
+          <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+            <button class="cms-btn-secondary" onclick="closeCampaignModal()">Cancel</button>
+            <button class="cms-btn-primary cms-btn-success" id="btnSendCampaign" onclick="executeSendCampaign()">
+              Send Dispatch Now
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Script Application Logic -->
+    <script>
+      const STORAGE_KEY = "enovashan_cms_auth_token";
+      let currentSessionToken = localStorage.getItem(STORAGE_KEY) || "";
+      let currentUser = null;
+      let allPosts = [];
+      let activeFilter = "all";
+      let currentEditingPost = null;
+
+      // Initialize on load
+      window.addEventListener("DOMContentLoaded", async () => {
+        if (currentSessionToken) {
+          await verifyExistingSession();
+        } else {
+          showAuthView();
+        }
+      });
+
+      function showAlert(message, type = "info", autoHide = 5000) {
+        const el = document.getElementById("globalAlert");
+        el.className = `cms-alert cms-alert-${type} show`;
+        el.textContent = message;
+        if (autoHide) {
+          setTimeout(() => {
+            el.className = "cms-alert";
+          }, autoHide);
+        }
+      }
+
+      // --- AUTHENTICATION ---
+      async function handleSignIn(event) {
+        event.preventDefault();
+        const email = document.getElementById("loginEmail").value.trim();
+        const password = document.getElementById("loginPassword").value;
+        const btn = document.getElementById("loginSubmitBtn");
+
+        btn.disabled = true;
+        btn.textContent = "Signing In…";
+
+        try {
+          const res = await fetch("/api/cms-auth", {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ email, password }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error(data.error || "Authentication failed.");
+          }
+
+          currentSessionToken = data.token;
+          currentUser = data.user;
+          localStorage.setItem(STORAGE_KEY, currentSessionToken);
+
+          showAppView();
+          await loadPosts();
+        } catch (err) {
+          showAlert(err.message, "danger");
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Sign In with Supabase";
+        }
+      }
+
+      async function verifyExistingSession() {
+        try {
+          const res = await fetch("/api/cms-auth", {
+            headers: { Authorization: `Bearer ${currentSessionToken}` },
+          });
+          const data = await res.json();
+          if (!res.ok) {
+            throw new Error("Session expired.");
+          }
+          currentUser = data.user;
+          showAppView();
+          await loadPosts();
+        } catch {
+          handleSignOut(false);
+        }
+      }
+
+      function handleSignOut(reload = true) {
+        localStorage.removeItem(STORAGE_KEY);
+        currentSessionToken = "";
+        currentUser = null;
+        if (reload) {
+          window.location.reload();
+        } else {
+          showAuthView();
+        }
+      }
+
+      function showAuthView() {
+        document.getElementById("authSection").style.display = "block";
+        document.getElementById("articlesSection").style.display = "none";
+        document.getElementById("editorSection").style.display = "none";
+        document.getElementById("cmsNavTabs").style.display = "none";
+        document.getElementById("cmsUserPill").style.display = "none";
+      }
+
+      function showAppView() {
+        document.getElementById("authSection").style.display = "none";
+        document.getElementById("cmsNavTabs").style.display = "flex";
+        document.getElementById("cmsUserPill").style.display = "flex";
+        document.getElementById("currentUserDisplay").textContent = currentUser?.email || "Admin";
+        switchMainView("articles");
+      }
+
+      function switchMainView(view) {
+        const tabArticles = document.getElementById("tabArticlesBtn");
+        const tabEditor = document.getElementById("tabEditorBtn");
+        const secArticles = document.getElementById("articlesSection");
+        const secEditor = document.getElementById("editorSection");
+
+        if (view === "articles") {
+          tabArticles.classList.add("active");
+          tabEditor.classList.remove("active");
+          secArticles.style.display = "block";
+          secEditor.style.display = "none";
+        } else {
+          tabArticles.classList.remove("active");
+          tabEditor.classList.add("active");
+          secArticles.style.display = "none";
+          secEditor.style.display = "block";
+          updateLivePreview();
+        }
+      }
+
+      // --- POSTS MANAGEMENT ---
+      async function loadPosts() {
+        try {
+          const res = await fetch("/api/cms-posts", {
+            headers: { Authorization: `Bearer ${currentSessionToken}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to load articles.");
+
+          allPosts = data.posts || [];
+          renderPostsList();
+          updateCounts();
+        } catch (err) {
+          showAlert(err.message, "danger");
+          document.getElementById("postsList").innerHTML = `
+            <div class="empty-state">
+              <h3>Could not load articles</h3>
+              <p style="color: #b91c1c;">${escapeHtml(err.message)}</p>
+            </div>
+          `;
+        }
+      }
+
+      function updateCounts() {
+        const counts = { all: allPosts.length, stories: 0, recipes: 0, "stories-urdu": 0, "stories-arabic": 0, books: 0, index: 0 };
+        allPosts.forEach((p) => {
+          if (counts[p.target_page] !== undefined) counts[p.target_page]++;
+        });
+        document.getElementById("countAll").textContent = counts.all;
+        document.getElementById("countStories").textContent = counts.stories;
+        document.getElementById("countRecipes").textContent = counts.recipes;
+        document.getElementById("countUrdu").textContent = counts["stories-urdu"];
+        document.getElementById("countArabic").textContent = counts["stories-arabic"];
+        document.getElementById("countBooks").textContent = counts.books;
+        document.getElementById("countHome").textContent = counts.index;
+      }
+
+      function filterPosts(filter, btn) {
+        activeFilter = filter;
+        document.querySelectorAll(".cms-filter-btn").forEach((b) => b.classList.remove("active"));
+        if (btn) btn.classList.add("active");
+        renderPostsList();
+      }
+
+      function renderPostsList() {
+        const container = document.getElementById("postsList");
+        const filtered = activeFilter === "all" ? allPosts : allPosts.filter((p) => p.target_page === activeFilter);
+
+        if (filtered.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h3>No articles found</h3>
+              <p style="color: var(--muted);">Click "+ Write New Article" to draft your first piece.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = filtered
+          .map((post) => {
+            const dateStr = post.published_at ? new Date(post.published_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : "";
+            const isRtl = post.language === "ur" || post.language === "ar";
+            return `
+              <div class="cms-post-card">
+                <div style="flex: 1;">
+                  <div class="cms-post-meta-row">
+                    <span class="cms-post-badge ${post.status === "published" ? "cms-badge-published" : "cms-badge-draft"}">
+                      ${post.status}
+                    </span>
+                    <span class="cms-post-badge">${getTargetPageLabel(post.target_page)}</span>
+                    <span class="cms-post-badge">${post.language?.toUpperCase() || "EN"}</span>
+                    ${post.featured_on_home ? '<span class="cms-post-badge" style="background:#dbeafe;color:#1e40af;">Home Featured</span>' : ""}
+                    <span style="font-size:0.8rem; color:var(--muted); margin-left:auto;">${dateStr}</span>
+                  </div>
+                  <h3 class="cms-post-title" ${isRtl ? 'dir="rtl" style="font-family:\'Noto Nastaliq Urdu\',serif;"' : ""}>
+                    ${escapeHtml(post.title)}
+                  </h3>
+                  <p class="cms-post-summary" ${isRtl ? 'dir="rtl"' : ""}>${escapeHtml(post.summary || "No summary provided.")}</p>
+                  <div class="cms-post-slug">
+                    URL: <a href="/${escapeHtml(post.slug)}.html" target="_blank" style="text-decoration:underline;">/${escapeHtml(post.slug)}.html</a>
+                  </div>
+                </div>
+                <div class="cms-post-actions">
+                  <button class="cms-btn-primary" onclick="editPost('${post.slug}')">Edit</button>
+                  <button class="cms-btn-secondary" onclick="openStaticHtmlModalForPost('${post.slug}')">&lt;/&gt; Export HTML</button>
+                  <button class="cms-btn-secondary" style="color:var(--cms-green);" onclick="openCampaignModalForPost('${post.slug}')">&#9993; Notify</button>
+                  <button class="cms-btn-secondary" style="color:#b91c1c;" onclick="deletePost('${post.slug}')">Delete</button>
+                </div>
+              </div>
+            `;
+          })
+          .join("");
+      }
+
+      function getTargetPageLabel(key) {
+        const map = {
+          stories: "Stories",
+          recipes: "Recipes",
+          "stories-urdu": "Stories Urdu",
+          "stories-arabic": "Stories Arabic",
+          books: "Book Notes",
+          index: "Lead Story",
+        };
+        return map[key] || key;
+      }
+
+      // --- EDITOR & COMPOSER ---
+      function startNewArticle() {
+        currentEditingPost = null;
+        document.getElementById("postTitle").value = "";
+        document.getElementById("postSlug").value = "";
+        document.getElementById("postCategory").value = "Life · Ideas";
+        document.getElementById("postReadTime").value = "5 min read";
+        document.getElementById("postTargetPage").value = "stories";
+        document.getElementById("postLanguage").value = "en";
+        document.getElementById("postStatus").value = "published";
+        document.getElementById("postFeaturedHome").checked = false;
+        document.getElementById("postSummary").value = "";
+        document.getElementById("markdownInput").value = "";
+        document.getElementById("slugPreviewText").textContent = "my-post";
+        document.getElementById("postPublishedDateDisplay").textContent = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+        switchMainView("editor");
+      }
+
+      function editPost(slug) {
+        const post = allPosts.find((p) => p.slug === slug);
+        if (!post) return;
+        currentEditingPost = post;
+
+        document.getElementById("postTitle").value = post.title || "";
+        document.getElementById("postSlug").value = post.slug || "";
+        document.getElementById("postCategory").value = post.category || "";
+        document.getElementById("postReadTime").value = post.read_time || "";
+        document.getElementById("postTargetPage").value = post.target_page || "stories";
+        document.getElementById("postLanguage").value = post.language || "en";
+        document.getElementById("postStatus").value = post.status || "published";
+        document.getElementById("postFeaturedHome").checked = Boolean(post.featured_on_home);
+        document.getElementById("postSummary").value = post.summary || "";
+        document.getElementById("markdownInput").value = post.content_markdown || "";
+        document.getElementById("slugPreviewText").textContent = post.slug;
+        document.getElementById("postPublishedDateDisplay").textContent = new Date(post.published_at || post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+        handleLanguageChange(post.language || "en");
+        switchMainView("editor");
+      }
+
+      function handleTitleChange(val) {
+        if (!currentEditingPost) {
+          const autoSlug = slugify(val);
+          document.getElementById("postSlug").value = autoSlug;
+          document.getElementById("slugPreviewText").textContent = autoSlug || "my-post";
+        }
+        updateLivePreview();
+      }
+
+      function handleSlugChange(val) {
+        const clean = slugify(val);
+        document.getElementById("slugPreviewText").textContent = clean || "my-post";
+      }
+
+      function handleTargetPageChange(val) {
+        if (val === "stories-urdu") {
+          document.getElementById("postLanguage").value = "ur";
+          handleLanguageChange("ur");
+        } else if (val === "stories-arabic") {
+          document.getElementById("postLanguage").value = "ar";
+          handleLanguageChange("ar");
+        }
+        updateLivePreview();
+      }
+
+      function handleLanguageChange(lang) {
+        const previewCont = document.getElementById("previewContainer");
+        const previewLang = document.getElementById("previewLangLabel");
+        if (lang === "ur" || lang === "ar") {
+          previewCont.classList.add("rtl-mode");
+          previewLang.textContent = `${lang.toUpperCase()} (RTL)`;
+        } else {
+          previewCont.classList.remove("rtl-mode");
+          previewLang.textContent = "EN (LTR)";
+        }
+        updateLivePreview();
+      }
+
+      function handleMarkdownInput() {
+        const text = document.getElementById("markdownInput").value;
+        const words = text.trim() ? text.trim().split(/\s+/).length : 0;
+        document.getElementById("wordCount").textContent = `${words} words`;
+        updateLivePreview();
+      }
+
+      function insertMarkdown(before, after) {
+        const textarea = document.getElementById("markdownInput");
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        const selected = text.substring(start, end);
+        const replacement = before + selected + after;
+        textarea.value = text.substring(0, start) + replacement + text.substring(end);
+        textarea.focus();
+        textarea.selectionStart = start + before.length;
+        textarea.selectionEnd = end + before.length;
+        handleMarkdownInput();
+      }
+
+      // Simple, robust client Markdown to HTML converter
+      function markdownToHtml(md) {
+        if (!md) return "";
+        let text = md.replace(/\r\n/g, "\n");
+
+        // Headers
+        text = text.replace(/^### (.*$)/gim, "<h3>$1</h3>");
+        text = text.replace(/^## (.*$)/gim, "<h2>$1</h2>");
+        text = text.replace(/^# (.*$)/gim, "<h1>$1</h1>");
+
+        // Blockquotes
+        text = text.replace(/^\> (.*$)/gim, "<blockquote>$1</blockquote>");
+
+        // Horizontal rules
+        text = text.replace(/^---$/gim, "<hr />");
+
+        // Bold & Italic
+        text = text.replace(/\*\*(.*?)\*\*/gim, "<strong>$1</strong>");
+        text = text.replace(/__(.*?)__/gim, "<strong>$1</strong>");
+        text = text.replace(/\*(.*?)\*/gim, "<em>$1</em>");
+        text = text.replace(/_(.*?)_/gim, "<em>$1</em>");
+
+        // Images: ![alt](url)
+        text = text.replace(/\!\[(.*?)\]\((.*?)\)/gim, '<figure><img src="$2" alt="$1" /><figcaption>$1</figcaption></figure>');
+
+        // Links: [text](url)
+        text = text.replace(/\[(.*?)\]\((.*?)\)/gim, '<a href="$2">$1</a>');
+
+        // Lists (unordered)
+        text = text.replace(/^\- (.*$)/gim, "<ul><li>$1</li></ul>");
+        text = text.replace(/<\/ul>\n<ul>/gim, "");
+
+        // Lists (ordered)
+        text = text.replace(/^\d+\. (.*$)/gim, "<ol><li>$1</li></ol>");
+        text = text.replace(/<\/ol>\n<ol>/gim, "");
+
+        // Paragraphs (double newlines)
+        const paragraphs = text.split(/\n\s*\n/);
+        return paragraphs
+          .map((p) => {
+            const trimmed = p.trim();
+            if (!trimmed) return "";
+            if (trimmed.startsWith("<h") || trimmed.startsWith("<blockquote") || trimmed.startsWith("<ul") || trimmed.startsWith("<ol") || trimmed.startsWith("<figure") || trimmed.startsWith("<hr")) {
+              return trimmed;
+            }
+            return `<p>${trimmed.replace(/\n/g, "<br />")}</p>`;
+          })
+          .join("\n");
+      }
+
+      function updateLivePreview() {
+        const title = document.getElementById("postTitle").value.trim() || "Your Article Title";
+        const category = document.getElementById("postCategory").value.trim() || "EDITORIAL";
+        const readTime = document.getElementById("postReadTime").value.trim() || "5 min read";
+        const summary = document.getElementById("postSummary").value.trim();
+        const rawMd = document.getElementById("markdownInput").value;
+        const html = markdownToHtml(rawMd);
+
+        document.getElementById("previewTitle").textContent = title;
+        document.getElementById("previewMetaLabel").textContent = `${category.toUpperCase()} · ${readTime.toUpperCase()}`;
+        document.getElementById("previewSummary").textContent = summary || "Your article excerpt and summary will appear here.";
+        document.getElementById("previewArticleMeta").textContent = `${category} · ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
+        document.getElementById("previewRenderedBody").innerHTML = html || "<p>Start drafting on the left to see your formatted article appear in real time.</p>";
+      }
+
+      // --- SAVING ---
+      async function savePost(statusOverride) {
+        const title = document.getElementById("postTitle").value.trim();
+        const rawSlug = document.getElementById("postSlug").value.trim() || slugify(title);
+        const slug = slugify(rawSlug);
+        const category = document.getElementById("postCategory").value.trim();
+        const read_time = document.getElementById("postReadTime").value.trim();
+        const target_page = document.getElementById("postTargetPage").value;
+        const language = document.getElementById("postLanguage").value;
+        const status = statusOverride || document.getElementById("postStatus").value;
+        const featured_on_home = document.getElementById("postFeaturedHome").checked;
+        const content_markdown = document.getElementById("markdownInput").value;
+        const content_html = markdownToHtml(content_markdown);
+
+        let summary = document.getElementById("postSummary").value.trim();
+        if (!summary && content_markdown) {
+          summary = content_markdown.replace(/[#*>\-_`\[\]\(\)!]/g, "").replace(/\s+/g, " ").trim().slice(0, 160) + "…";
+          document.getElementById("postSummary").value = summary;
+        }
+
+        if (!title) {
+          showAlert("Please enter an article title.", "danger");
+          return;
+        }
+        if (!slug) {
+          showAlert("Please enter a valid slug.", "danger");
+          return;
+        }
+
+        const payload = {
+          slug,
+          title,
+          summary,
+          content_markdown,
+          content_html,
+          category,
+          read_time,
+          target_page,
+          language,
+          status,
+          featured_on_home,
+          published_at: currentEditingPost?.published_at || new Date().toISOString(),
+        };
+
+        try {
+          const res = await fetch("/api/cms-posts", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${currentSessionToken}`,
+            },
+            body: JSON.stringify(payload),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to save post.");
+
+          showAlert(`Article "${title}" saved successfully (${status})!`, "success");
+          currentEditingPost = data.post;
+          await loadPosts();
+        } catch (err) {
+          showAlert(err.message, "danger");
+        }
+      }
+
+      async function deletePost(slug) {
+        if (!confirm(`Are you sure you want to delete the post "${slug}"?`)) return;
+        try {
+          const res = await fetch(`/api/cms-posts?slug=${encodeURIComponent(slug)}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${currentSessionToken}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to delete post.");
+
+          showAlert(`Article "${slug}" deleted.`, "info");
+          await loadPosts();
+        } catch (err) {
+          showAlert(err.message, "danger");
+        }
+      }
+
+      // --- STATIC HTML GENERATOR ---
+      function buildFullStaticHtml({ slug, title, summary, category, read_time, language, content_html, published_at }) {
+        const isRtl = language === "ur" || language === "ar";
+        const langAttr = isRtl ? `lang="${language}" dir="rtl"` : 'lang="en"';
+        const dateStr = published_at ? new Date(published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+        const fontLink = isRtl
+          ? '<link href="https://fonts.googleapis.com/css2?family=Noto+Nastaliq+Urdu:wght@400;500;600;700&display=swap" rel="stylesheet" />'
+          : '<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />';
+
+        const articleClass = isRtl ? "archive-article archive-article--urdu" : "archive-article";
+        const metaText = escapeHtml(category ? `${category} · ${dateStr}` : dateStr);
+
+        return `<!DOCTYPE html>
+<html ${langAttr}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>${escapeHtml(title)} — Enovashan</title>
+    <meta name="description" content="${escapeHtml(summary || title)}" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    ${fontLink}
+    <link rel="stylesheet" href="styles.css" />
+    <script src="comments.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell page-shell--subpage">
+      <header class="topbar" dir="ltr">
+        <a class="brand" href="index.html" aria-label="Enovashan home">
+          <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 58 58" focusable="false"><path class="brand-mark__frame" d="M15 49V11h29v17"/><path class="brand-mark__n" d="M22 43V22l16 18V22"/><circle class="brand-mark__signal" cx="45" cy="12" r="4"/></svg></div>
+          <div class="brand-name">Enovashan</div>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="index.html">Home</a>
+          <a href="stories.html">Stories</a><a href="books.html">Book notes</a><a href="watch.html">Watch</a><a href="books.html">Learn</a><a href="recipes.html">Recipes</a><a href="shop.html">Shop</a><a href="about.html">About</a>
+        </nav>
+        <div class="toolbar">
+          <a href="cart.html" class="icon-button cart-link" aria-label="Cart"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0110 0v1h2.5l-1.1 11.1A2 2 0 0116.4 20H7.6a2 2 0 01-1.99-1.9L4.5 7H7zm2 0h6V6a3 3 0 10-6 0v1z"/></svg></a>
+        </div>
+      </header>
+
+      <main class="content-page">
+        <section class="page-hero tight-hero narrow-hero" ${isRtl ? 'dir="rtl"' : ""}>
+          <div class="meta-label">${escapeHtml(category || "EDITORIAL")} / ${dateStr.toUpperCase()}</div>
+          <h1>${escapeHtml(title)}</h1>
+          ${summary ? `<p>${escapeHtml(summary)}</p>` : ""}
+        </section>
+
+        <article class="${articleClass}" ${isRtl ? 'dir="rtl"' : ""}>
+          <div class="archive-article__meta">${metaText}</div>
+          <div class="archive-article__body">
+${content_html}
+          </div>
+
+          <section class="comments-section" data-comments data-article-slug="${escapeHtml(slug)}" ${isRtl ? 'dir="rtl"' : ""} aria-labelledby="comments-title">
+            <div class="eyebrow">${isRtl ? "گفتگو" : "The conversation"}</div>
+            <h2 id="comments-title">${isRtl ? "تبصرے" : "Comments"} <span data-comment-count>0</span></h2>
+            <p class="comments-disclosure">${isRtl ? "تبصرے عوامی ہیں اور کسی اکاؤنٹ کی ضرورت نہیں ہے۔" : "Comments are public and do not require an account. Use a display name, and keep private information out of your post."}</p>
+            <form class="comment-form" data-comment-form>
+              <label>${isRtl ? "نام" : "Name"}<input name="name" type="text" maxlength="60" autocomplete="name" required /></label>
+              <label>${isRtl ? "آپ کا تبصرہ" : "Your comment"}<textarea name="body" rows="4" maxlength="2000" required></textarea></label>
+              <label class="comment-honeypot" aria-hidden="true">Leave this field empty<input name="website" type="text" tabindex="-1" autocomplete="off" /></label>
+              <button class="comment-submit" type="submit">${isRtl ? "تبصرہ ارسال کریں" : "Post comment"} <span aria-hidden="true">&rarr;</span></button>
+              <p class="comment-status" data-comment-status aria-live="polite"></p>
+            </form>
+            <ol class="comment-list" data-comment-list aria-label="Comments"></ol>
+          </section>
+
+          <a href="${getTargetPageFilename(arguments[0].target_page)}" class="primary-link" style="margin-top: 2rem;">Back to ${getTargetPageLabel(arguments[0].target_page)} <span>&rarr;</span></a>
+        </article>
+      </main>
+
+      <footer class="site-footer">
+        <div class="footer-bottom"><span>&copy; 2025 Enovashan</span><span>Built for the curious</span></div>
+      </footer>
+    </div>
+  </body>
+</html>`;
+      }
+
+      function buildCardSnippet({ slug, title, summary, category, read_time, target_page, language, featured_on_home, published_at }) {
+        const isRtl = language === "ur" || language === "ar";
+        const dateStr = published_at ? new Date(published_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
+
+        let snippets = [];
+
+        // Snippet for target directory page
+        if (target_page === "index") {
+          snippets.push(`<!-- Place in index.html inside <div class="archive-teaser-grid"> -->
+<article class="archive-teaser">
+  <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${dateStr}</span></div>
+  <h3>${escapeHtml(title)}</h3>
+  <p>${escapeHtml(summary || "")}</p>
+  <a href="${escapeHtml(slug)}.html" class="inline-link">Read the story <span>&rarr;</span></a>
+</article>`);
+        } else {
+          snippets.push(`<!-- Place in ${getTargetPageFilename(target_page)} inside <div class="story-list"> -->
+<article class="story-card" ${isRtl ? 'dir="rtl"' : ""}>
+  <div class="story-badge">&bull;</div>
+  <div class="story-meta"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "Read")}</span></div>
+  <h3><a href="${escapeHtml(slug)}.html">${escapeHtml(title)}</a></h3>
+  <p>${escapeHtml(summary || "")}</p>
+</article>`);
+        }
+
+        // Additional snippet if featured on Home
+        if (featured_on_home && target_page !== "index") {
+          snippets.push(`\n<!-- Featured on Home page: Place in index.html inside <div class="archive-teaser-grid"> -->
+<article class="archive-teaser">
+  <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${dateStr}</span></div>
+  <h3>${escapeHtml(title)}</h3>
+  <p>${escapeHtml(summary || "")}</p>
+  <a href="${escapeHtml(slug)}.html" class="inline-link">Read the story <span>&rarr;</span></a>
+</article>`);
+        }
+
+        return snippets.join("\n");
+      }
+
+      function getTargetPageFilename(target) {
+        const map = {
+          stories: "stories.html",
+          recipes: "recipes.html",
+          "stories-urdu": "stories-urdu.html",
+          "stories-arabic": "stories-arabic.html",
+          books: "books.html",
+          index: "index.html",
+        };
+        return map[target] || "stories.html";
+      }
+
+      let generatedHtmlContent = "";
+      let generatedCardContent = "";
+      let activeExportSlug = "";
+
+      function openStaticHtmlModal() {
+        const title = document.getElementById("postTitle").value.trim() || "Untitled";
+        const rawSlug = document.getElementById("postSlug").value.trim() || slugify(title);
+        const slug = slugify(rawSlug);
+        const category = document.getElementById("postCategory").value.trim();
+        const read_time = document.getElementById("postReadTime").value.trim();
+        const target_page = document.getElementById("postTargetPage").value;
+        const language = document.getElementById("postLanguage").value;
+        const featured_on_home = document.getElementById("postFeaturedHome").checked;
+        const summary = document.getElementById("postSummary").value.trim();
+        const content_html = markdownToHtml(document.getElementById("markdownInput").value);
+
+        const postData = {
+          slug,
+          title,
+          summary,
+          category,
+          read_time,
+          target_page,
+          language,
+          featured_on_home,
+          content_html,
+          published_at: currentEditingPost?.published_at || new Date().toISOString(),
+        };
+
+        populateAndShowHtmlModal(postData);
+      }
+
+      function openStaticHtmlModalForPost(slug) {
+        const post = allPosts.find((p) => p.slug === slug);
+        if (!post) return;
+        const postData = {
+          ...post,
+          content_html: post.content_html || markdownToHtml(post.content_markdown || ""),
+        };
+        populateAndShowHtmlModal(postData);
+      }
+
+      function populateAndShowHtmlModal(postData) {
+        activeExportSlug = postData.slug;
+        generatedHtmlContent = buildFullStaticHtml(postData);
+        generatedCardContent = buildCardSnippet(postData);
+
+        document.getElementById("modalSlugDisplay").textContent = postData.slug;
+        document.getElementById("downloadBtnSlug").textContent = postData.slug;
+        document.getElementById("generatedHtmlCode").textContent = generatedHtmlContent;
+        document.getElementById("generatedCardCode").textContent = generatedCardContent;
+        document.getElementById("modalTargetPageInstruction").textContent = getTargetPageFilename(postData.target_page);
+
+        switchModalTab("file");
+        document.getElementById("htmlModal").classList.add("open");
+      }
+
+      function closeStaticHtmlModal() {
+        document.getElementById("htmlModal").classList.remove("open");
+      }
+
+      function switchModalTab(tab) {
+        const tabFile = document.getElementById("modalTabFile");
+        const tabCard = document.getElementById("modalTabCard");
+        const btnFile = document.getElementById("modalTabFileBtn");
+        const btnCard = document.getElementById("modalTabCardBtn");
+
+        if (tab === "file") {
+          tabFile.style.display = "block";
+          tabCard.style.display = "none";
+          btnFile.classList.add("active");
+          btnCard.classList.remove("active");
+        } else {
+          tabFile.style.display = "none";
+          tabCard.style.display = "block";
+          btnFile.classList.remove("active");
+          btnCard.classList.add("active");
+        }
+      }
+
+      function downloadHtmlFile() {
+        const blob = new Blob([generatedHtmlContent], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `${activeExportSlug}.html`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        showAlert(`Downloaded ${activeExportSlug}.html! Place it into your project folder.`, "success");
+      }
+
+      function copyGeneratedHtml() {
+        navigator.clipboard.writeText(generatedHtmlContent).then(() => {
+          showAlert("Full HTML copied to clipboard!", "success");
+        });
+      }
+
+      function copyCardSnippet() {
+        navigator.clipboard.writeText(generatedCardContent).then(() => {
+          showAlert("Card snippet copied to clipboard!", "success");
+        });
+      }
+
+      function openLivePreviewTab() {
+        const blob = new Blob([generatedHtmlContent], { type: "text/html;charset=utf-8" });
+        const url = URL.createObjectURL(blob);
+        window.open(url, "_blank");
+      }
+
+      // --- SUBSCRIBER NOTIFICATION (CAMPAIGN) ---
+      function openCampaignModal() {
+        const title = document.getElementById("postTitle").value.trim();
+        const rawSlug = document.getElementById("postSlug").value.trim() || slugify(title);
+        const slug = slugify(rawSlug);
+        const summary = document.getElementById("postSummary").value.trim();
+
+        if (!title || !slug) {
+          showAlert("Please set an article title and slug before notifying subscribers.", "danger");
+          return;
+        }
+
+        populateCampaignModal(title, summary, `https://www.enovashan.com/${slug}.html`);
+      }
+
+      function openCampaignModalForPost(slug) {
+        const post = allPosts.find((p) => p.slug === slug);
+        if (!post) return;
+        populateCampaignModal(post.title, post.summary, `https://www.enovashan.com/${post.slug}.html`);
+      }
+
+      function populateCampaignModal(heading, summary, url) {
+        document.getElementById("campaignHeading").value = heading || "";
+        document.getElementById("campaignSummary").value = summary || "";
+        document.getElementById("campaignUrl").value = url || "";
+        document.getElementById("campaignStatusAlert").className = "cms-alert";
+
+        updateEmailPreview();
+        document.getElementById("campaignModal").classList.add("open");
+      }
+
+      function closeCampaignModal() {
+        document.getElementById("campaignModal").classList.remove("open");
+      }
+
+      function updateEmailPreview() {
+        const heading = document.getElementById("campaignHeading").value || "New Article Title";
+        const summary = document.getElementById("campaignSummary").value || "Summary of the latest article...";
+        document.getElementById("emailPreviewHeading").textContent = heading;
+        document.getElementById("emailPreviewSummary").textContent = summary;
+      }
+
+      async function executeSendCampaign() {
+        const heading = document.getElementById("campaignHeading").value.trim();
+        const summary = document.getElementById("campaignSummary").value.trim();
+        const url = document.getElementById("campaignUrl").value.trim();
+        const statusEl = document.getElementById("campaignStatusAlert");
+        const btn = document.getElementById("btnSendCampaign");
+
+        if (!heading || !summary || !url) {
+          statusEl.className = "cms-alert cms-alert-danger show";
+          statusEl.textContent = "Heading, summary, and article URL are all required.";
+          return;
+        }
+
+        if (!confirm(`Are you sure you want to send this email dispatch to all confirmed newsletter subscribers?`)) {
+          return;
+        }
+
+        btn.disabled = true;
+        btn.textContent = "Sending Campaign…";
+        statusEl.className = "cms-alert cms-alert-info show";
+        statusEl.textContent = "Connecting to Resend email service…";
+
+        try {
+          const res = await fetch("/api/send-campaign", {
+            method: "POST",
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${currentSessionToken}`,
+            },
+            body: JSON.stringify({ heading, summary, url }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to send campaign.");
+
+          statusEl.className = "cms-alert cms-alert-success show";
+          statusEl.textContent = `Success! Dispatched email to ${data.sent || 0} subscriber(s).`;
+          showAlert(`Campaign sent to ${data.sent || 0} subscribers!`, "success");
+        } catch (err) {
+          statusEl.className = "cms-alert cms-alert-danger show";
+          statusEl.textContent = err.message;
+        } finally {
+          btn.disabled = false;
+          btn.textContent = "Send Dispatch Now";
+        }
+      }
+
+      // --- UTILITIES ---
+      function slugify(text) {
+        if (!text) return "";
+        return text
+          .toString()
+          .toLowerCase()
+          .trim()
+          .replace(/[^a-z0-9\s-]/g, "")
+          .replace(/\s+/g, "-")
+          .replace(/-+/g, "-")
+          .slice(0, 100);
+      }
+
+      function escapeHtml(str) {
+        if (!str) return "";
+        return str
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+    </script>
+  </body>
+</html>

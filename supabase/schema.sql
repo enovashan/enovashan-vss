@@ -73,3 +73,34 @@ alter table public.subscribers enable row level security;
 revoke all on public.subscribers from anon, authenticated;
 grant all on public.subscribers to service_role;
 
+-- =============================================================================
+-- CMS Posts: editorial articles, metadata, drafts, and target page mappings
+-- =============================================================================
+create table if not exists public.posts (
+  id uuid primary key default gen_random_uuid(),
+  slug text not null unique check (slug ~ '^[a-z0-9][a-z0-9-]{0,99}$'),
+  title text not null check (char_length(title) between 1 and 200),
+  summary text not null default '',
+  content_markdown text not null default '',
+  content_html text not null default '',
+  category text not null default '',
+  read_time text not null default '',
+  target_page text not null default 'stories',
+  language text not null default 'en',
+  status text not null default 'published' check (status in ('draft', 'published')),
+  featured_on_home boolean not null default false,
+  published_at timestamptz not null default now(),
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists posts_target_page_idx
+  on public.posts (target_page, published_at desc);
+
+create index if not exists posts_slug_idx
+  on public.posts (slug);
+
+alter table public.posts enable row level security;
+revoke all on public.posts from anon, authenticated;
+grant all on public.posts to service_role;
+

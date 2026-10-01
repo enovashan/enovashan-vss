@@ -1016,8 +1016,21 @@ main {
 .footer-top {
   display: grid;
   grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.8fr) minmax(0, 0.9fr);
-  gap: 2rem;
-  align-items: start;
+  gap: 1rem;
+  align-items: stretch;
+}
+
+.footer-top > * {
+  min-width: 0;
+  padding: 1.5rem;
+  border: 1px solid rgba(23, 38, 60, 0.22);
+  border-radius: 0.8rem;
+  background: var(--panel);
+}
+
+.footer-lead {
+  display: flex;
+  align-items: center;
 }
 
 .footer-lead p {
@@ -1038,11 +1051,31 @@ main {
 .footer-nav {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.65rem 1.1rem;
-  padding-top: 0.5rem;
+  align-content: start;
+  gap: 0.5rem 0.8rem;
   font-size: 0.9rem;
-  letter-spacing: 0.16em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
+}
+
+.footer-nav::before {
+  content: "Explore";
+  grid-column: 1 / -1;
+  margin-bottom: 0.35rem;
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  color: var(--ink-soft);
+}
+
+.footer-nav a {
+  padding: 0.55rem 0;
+  border-bottom: 1px solid rgba(23, 38, 60, 0.18);
+}
+
+.footer-nav a:hover,
+.footer-nav a:focus-visible {
+  color: var(--green-deep);
+  border-bottom-color: currentColor;
 }
 
 .footer-languages {
@@ -1597,6 +1630,10 @@ main {
     grid-template-columns: 1fr 1fr;
   }
 
+  .footer-languages {
+    grid-column: 1 / -1;
+  }
+
   .mini-grid,
   .story-list,
   .about-grid,
@@ -1666,11 +1703,13 @@ main {
   .footer-top {
     display: flex;
     flex-direction: column;
-    gap: 1.8rem;
+    gap: 1rem;
   }
 
-  .footer-nav {
-    padding-top: 0;
+  .footer-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
   }
 
   .story-grid,

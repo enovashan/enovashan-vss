@@ -197,6 +197,43 @@ input {
   gap: 0.4rem;
 }
 
+.header-updates {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.newsletter-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  color: var(--ink);
+}
+
+.newsletter-icon svg {
+  display: block;
+  width: 1.5rem;
+  height: 1.5rem;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.8;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.newsletter-icon:hover,
+.newsletter-icon:focus-visible {
+  color: var(--green-deep);
+}
+
+.newsletter-icon:focus-visible {
+  outline: 2px solid currentColor;
+  outline-offset: 3px;
+}
+
 .social-icon {
   display: inline-flex;
   align-items: center;

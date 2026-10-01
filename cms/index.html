@@ -846,7 +846,7 @@
 
             <div class="cms-form-group">
               <label for="postLanguage">Language / Direction</label>
-              <select id="postLanguage" onchange="handleLanguageChange(this.value)">
+              <select id="postLanguage" onchange="handleLanguageChangeManual(this.value)">
                 <option value="en">English (LTR)</option>
                 <option value="ur">اردو — Urdu (RTL)</option>
                 <option value="ar">العربية — Arabic (RTL)</option>
@@ -1322,6 +1322,7 @@
       // --- EDITOR & COMPOSER ---
       function startNewArticle() {
         currentEditingPost = null;
+        userSetLanguage = false;
         document.getElementById("postTitle").value = "";
         document.getElementById("postSlug").value = "";
         document.getElementById("postCategory").value = "Life · Ideas";
@@ -1356,6 +1357,7 @@
         document.getElementById("slugPreviewText").textContent = post.slug;
         document.getElementById("postPublishedDateDisplay").textContent = new Date(post.published_at || post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
+        userSetLanguage = true;
         handleLanguageChange(post.language || "en");
         switchMainView("editor");
       }
@@ -1366,7 +1368,43 @@
           document.getElementById("postSlug").value = autoSlug;
           document.getElementById("slugPreviewText").textContent = autoSlug || "my-post";
         }
+        maybeAutoDetectLanguage();
         updateLivePreview();
+      }
+
+      // Guesses Urdu/Arabic/English from the script actually typed or pasted, so the
+      // RTL preview flips automatically instead of requiring a manual dropdown change
+      let userSetLanguage = false;
+
+      function detectScriptLanguage(text) {
+        if (!text) return null;
+        const arabicScriptRe = /[\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
+        const letterRe = /[A-Za-z\u0600-\u06FF\u0750-\u077F\u08A0-\u08FF\uFB50-\uFDFF\uFE70-\uFEFF]/g;
+        const arabicScriptChars = text.match(arabicScriptRe) || [];
+        const letterChars = text.match(letterRe) || [];
+        if (letterChars.length < 8 || arabicScriptChars.length / letterChars.length < 0.4) return null;
+        const urduOnlyChars = /[\u06D2\u06BA\u0691\u06AF\u06BE\u06C1\u0679\u0688\u0698\u06A9]/; // ے ں ڑ گ ھ ہ ٹ ڈ ژ ک
+        return urduOnlyChars.test(text) ? "ur" : "ar";
+      }
+
+      function maybeAutoDetectLanguage() {
+        if (userSetLanguage) return;
+        const title = document.getElementById("postTitle").value;
+        const body = document.getElementById("markdownInput").value;
+        const detected = detectScriptLanguage(`${title} ${body}`);
+        const current = document.getElementById("postLanguage").value;
+        if (detected && detected !== current) {
+          document.getElementById("postLanguage").value = detected;
+          handleLanguageChange(detected);
+        } else if (!detected && current !== "en" && !body.trim() && !title.trim()) {
+          document.getElementById("postLanguage").value = "en";
+          handleLanguageChange("en");
+        }
+      }
+
+      function handleLanguageChangeManual(lang) {
+        userSetLanguage = true;
+        handleLanguageChange(lang);
       }
 
       function handleSlugChange(val) {
@@ -1376,9 +1414,11 @@
 
       function handleTargetPageChange(val) {
         if (val === "stories-urdu") {
+          userSetLanguage = true;
           document.getElementById("postLanguage").value = "ur";
           handleLanguageChange("ur");
         } else if (val === "stories-arabic") {
+          userSetLanguage = true;
           document.getElementById("postLanguage").value = "ar";
           handleLanguageChange("ar");
         }
@@ -1402,6 +1442,7 @@
         const text = document.getElementById("markdownInput").value;
         const words = text.trim() ? text.trim().split(/\s+/).length : 0;
         document.getElementById("wordCount").textContent = `${words} words`;
+        maybeAutoDetectLanguage();
         updateLivePreview();
       }
 

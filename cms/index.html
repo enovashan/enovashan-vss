@@ -1590,11 +1590,34 @@
           }
         }
 
-        const markdown = Array.from(container.childNodes)
+        const rawMarkdown = Array.from(container.childNodes)
           .map(walkBlock)
           .join("")
           .replace(/\n{3,}/g, "\n\n")
           .trim();
+
+        // Word often exports each visually-wrapped line as its OWN separate <p> (not <br>-joined
+        // within one <p>), which the block-level walk above has no way to tell apart from real
+        // paragraph breaks. Fix it here: merge adjacent plain-prose blocks whenever the earlier one
+        // doesn't actually end a sentence — headings/bold-only lines/lists/quotes are left alone.
+        const NON_PROSE_START_RE = /^(#{1,6}\s|>|\*{1,3}[^*]|-\s|\d+\.\s|!\[|---$)/;
+        const isMergeableProse = (block) => {
+          const trimmed = block.trim();
+          return trimmed && !NON_PROSE_START_RE.test(trimmed) && !SENTENCE_END_RE.test(trimmed);
+        };
+
+        const blocks = rawMarkdown.split(/\n\n+/);
+        const merged = [];
+        for (const block of blocks) {
+          const prev = merged[merged.length - 1];
+          if (prev !== undefined && isMergeableProse(prev) && block.trim() && !NON_PROSE_START_RE.test(block.trim())) {
+            merged[merged.length - 1] = `${prev.trim()} ${block.trim()}`;
+          } else {
+            merged.push(block);
+          }
+        }
+
+        const markdown = merged.join("\n\n").trim();
 
         return markdown || container.textContent.trim();
       }

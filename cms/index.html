@@ -1552,8 +1552,16 @@
             case "hr":
               return "---\n\n";
             case "p":
-            case "div":
               return `${inline(node)}\n\n`;
+            case "div": {
+              // Word/Docs often wrap the entire pasted document in one outer <div> — if it contains
+              // nested block elements (paragraphs, headings, lists...), recurse block-wise instead of
+              // flattening everything into a single run of inline text (which lost all paragraph breaks)
+              const hasBlockChildren = Array.from(node.children).some((child) =>
+                /^(p|div|h1|h2|h3|h4|h5|h6|ul|ol|blockquote|hr)$/.test(child.tagName.toLowerCase())
+              );
+              return hasBlockChildren ? Array.from(node.childNodes).map(walkBlock).join("") : `${inline(node)}\n\n`;
+            }
             default:
               return Array.from(node.childNodes).map(walkBlock).join("");
           }

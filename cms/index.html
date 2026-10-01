@@ -1106,9 +1106,16 @@
             body: JSON.stringify({ email, password }),
           });
 
-          const data = await res.json();
+          let data = {};
+          try {
+            data = await res.json();
+          } catch {
+            const raw = await res.text();
+            throw new Error(raw || `HTTP ${res.status}: Server returned an invalid response.`);
+          }
+
           if (!res.ok) {
-            throw new Error(data.error || "Authentication failed.");
+            throw new Error(data.error || `Sign-in failed (HTTP ${res.status}).`);
           }
 
           currentSessionToken = data.token;
@@ -1118,7 +1125,7 @@
           showAppView();
           await loadPosts();
         } catch (err) {
-          showAlert(err.message, "danger");
+          showAlert(err.message, "danger", 8000);
         } finally {
           btn.disabled = false;
           btn.textContent = "Sign In with Supabase";

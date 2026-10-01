@@ -115,22 +115,29 @@ module.exports = async function handler(request, response) {
       return jsonResponse(response, 400, { error: "Please enter a valid email address." });
     }
 
-    const result = await supabaseRequest(config, "subscribers", {
+    const result = await supabaseRequest(config, "subscribers?on_conflict=email", {
       method: "POST",
       headers: { prefer: "resolution=ignore-duplicates,return=representation" },
       body: JSON.stringify({ email }),
     });
     if (!result.ok) {
+      if (result.status === 409) {
+        const conflict = await result.json();
+        if (conflict.code === "23505" && conflict.message?.includes('"subscribers_email_key"')) {
+          return jsonResponse(response, 200, { subscribed: true, alreadySubscribed: true });
+        }
+      }
       return jsonResponse(response, 502, { error: storageError(result.status, "saving the subscription") });
     }
     const rows = await result.json();
     const subscriber = rows[0];
 
-    if (subscriber) {
-      await sendWelcomeEmail(email, subscriber.unsubscribe_token);
+    if (!subscriber) {
+      return jsonResponse(response, 200, { subscribed: true, alreadySubscribed: true });
     }
 
-    return jsonResponse(response, 201, { subscribed: true });
+    await sendWelcomeEmail(email, subscriber.unsubscribe_token);
+    return jsonResponse(response, 201, { subscribed: true, alreadySubscribed: false });
   } catch {
     return jsonResponse(response, 500, { error: "The newsletter service encountered an error." });
   }

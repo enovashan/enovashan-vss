@@ -28,7 +28,9 @@ function initializeNewsletterForm(form) {
       const result = await response.json();
       if (!response.ok) throw new Error(result.error || "Subscription failed.");
       form.reset();
-      status.textContent = "You're on the list. Check your inbox for a welcome note.";
+      status.textContent = result.alreadySubscribed
+        ? "You're already with us — welcome back!"
+        : "You're on the list. Check your inbox for a welcome note.";
     } catch (error) {
       status.textContent = error.message || "Subscription failed. Please try again.";
     } finally {

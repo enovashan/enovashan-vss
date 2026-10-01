@@ -85,6 +85,7 @@ module.exports = async function handler(request, response) {
         method: "POST",
         headers: {
           apikey: config.secretKey,
+          ...(config.isLegacyJwt ? { authorization: `Bearer ${config.secretKey}` } : {}),
           "content-type": "application/json",
         },
         body: JSON.stringify({ email: normalizedEmail, password }),
@@ -95,6 +96,8 @@ module.exports = async function handler(request, response) {
       if (!authRes.ok) {
         return jsonResponse(response, 401, {
           error: authData.error_description || authData.msg || authData.message || "Invalid credentials.",
+          details: authData,
+          status: authRes.status,
         });
       }
 

@@ -1485,8 +1485,23 @@
         const container = document.createElement("div");
         container.innerHTML = html;
 
+        // Word/Docs frequently export distinct paragraphs as a single <p> with <br> line breaks
+        // instead of separate <p> elements. But some <br>s are just a cosmetic mid-sentence line
+        // wrap, not a real paragraph break — so only treat a <br> as a paragraph break when the
+        // text right before it actually ends a sentence; otherwise it's just a word space.
+        const SENTENCE_END_RE = /[.!?۔؟]$/;
+
         function inline(node) {
-          return Array.from(node.childNodes).map(walkInline).join("");
+          let result = "";
+          for (const child of Array.from(node.childNodes)) {
+            if (child.nodeType === Node.ELEMENT_NODE && child.tagName.toLowerCase() === "br") {
+              const trimmed = result.replace(/[ \t]+$/, "");
+              result = SENTENCE_END_RE.test(trimmed) ? `${trimmed}\n\n` : `${trimmed} `;
+            } else {
+              result += walkInline(child);
+            }
+          }
+          return result;
         }
 
         function walkInline(node) {
@@ -1513,10 +1528,7 @@
             /(?:^|;)\s*(?:mso-bidi-)?font-style\s*:\s*italic/.test(rawStyle);
           switch (tag) {
             case "br":
-              // Word/Docs frequently export distinct paragraphs as a single <p> with <br> line
-              // breaks instead of separate <p> elements — treat each break as a new paragraph
-              // (prose pasted here is essay-style; true intra-paragraph soft-wraps are rare).
-              return "\n\n";
+              return ""; // handled directly in inline() with sentence-boundary context
             case "a":
               return `[${content}](${node.getAttribute("href") || ""})`;
             case "img":

@@ -897,7 +897,7 @@
               <button type="button" class="cms-tool-btn" onclick="insertMarkdown('![', '](https://example.com/image.jpg)')" title="Image">&#128247; Image</button>
               <button type="button" class="cms-tool-btn" onclick="insertMarkdown('\n---\n', '')" title="Separator">&horbar; Line</button>
             </div>
-            <textarea id="markdownInput" class="cms-textarea" placeholder="Start writing your article in Markdown...&#10;&#10;## Subheading&#10;Write your thoughts freely.&#10;&#10;> An insightful quote that anchors the piece." oninput="handleMarkdownInput()"></textarea>
+            <textarea id="markdownInput" class="cms-textarea" placeholder="Start writing your article in Markdown...&#10;&#10;## Subheading&#10;Write your thoughts freely.&#10;&#10;> An insightful quote that anchors the piece." oninput="handleMarkdownInput()" onpaste="handleMarkdownPaste(event)"></textarea>
           </div>
 
           <!-- Right: Live Styled Preview -->
@@ -1400,6 +1400,101 @@
         textarea.selectionStart = start + before.length;
         textarea.selectionEnd = end + before.length;
         handleMarkdownInput();
+      }
+
+      // Preserve bold/italic/headings/links/lists when pasting rich text (e.g. from Word/Docs)
+      function handleMarkdownPaste(event) {
+        const clipboard = event.clipboardData || window.clipboardData;
+        if (!clipboard) return;
+        const html = clipboard.getData("text/html");
+        if (!html || !/<[a-z][\s\S]*>/i.test(html)) return; // no HTML payload, let default plain-text paste happen
+
+        event.preventDefault();
+        const markdown = htmlToMarkdown(html);
+
+        const textarea = document.getElementById("markdownInput");
+        const start = textarea.selectionStart;
+        const end = textarea.selectionEnd;
+        const text = textarea.value;
+        textarea.value = text.substring(0, start) + markdown + text.substring(end);
+        const caret = start + markdown.length;
+        textarea.selectionStart = textarea.selectionEnd = caret;
+        handleMarkdownInput();
+      }
+
+      // Converts pasted rich-text HTML (bold/italic/headings/links/lists) into our Markdown dialect
+      function htmlToMarkdown(html) {
+        const container = document.createElement("div");
+        container.innerHTML = html;
+
+        function inline(node) {
+          return Array.from(node.childNodes).map(walkInline).join("");
+        }
+
+        function walkInline(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            return node.textContent.replace(/\u00a0/g, " ");
+          }
+          if (node.nodeType !== Node.ELEMENT_NODE) return "";
+          const tag = node.tagName.toLowerCase();
+          const content = inline(node);
+          const isBold = tag === "b" || tag === "strong" || /bold/i.test(node.style?.fontWeight || "") || Number(node.style?.fontWeight) >= 600;
+          const isItalic = tag === "i" || tag === "em" || node.style?.fontStyle === "italic";
+          switch (tag) {
+            case "br":
+              return "\n";
+            case "a":
+              return `[${content}](${node.getAttribute("href") || ""})`;
+            case "img":
+              return `![${node.getAttribute("alt") || ""}](${node.getAttribute("src") || ""})`;
+            default:
+              if (isBold && isItalic) return `***${content}***`;
+              if (isBold) return `**${content}**`;
+              if (isItalic) return `*${content}*`;
+              return content;
+          }
+        }
+
+        function walkBlock(node) {
+          if (node.nodeType === Node.TEXT_NODE) {
+            const text = node.textContent.trim();
+            return text ? text + "\n\n" : "";
+          }
+          if (node.nodeType !== Node.ELEMENT_NODE) return "";
+          const tag = node.tagName.toLowerCase();
+          switch (tag) {
+            case "h1":
+              return `# ${inline(node)}\n\n`;
+            case "h2":
+              return `## ${inline(node)}\n\n`;
+            case "h3":
+            case "h4":
+            case "h5":
+            case "h6":
+              return `### ${inline(node)}\n\n`;
+            case "blockquote":
+              return `> ${inline(node)}\n\n`;
+            case "ul":
+              return Array.from(node.children).map((li) => `- ${inline(li)}`).join("\n") + "\n\n";
+            case "ol":
+              return Array.from(node.children).map((li, i) => `${i + 1}. ${inline(li)}`).join("\n") + "\n\n";
+            case "hr":
+              return "---\n\n";
+            case "p":
+            case "div":
+              return `${inline(node)}\n\n`;
+            default:
+              return Array.from(node.childNodes).map(walkBlock).join("");
+          }
+        }
+
+        const markdown = Array.from(container.childNodes)
+          .map(walkBlock)
+          .join("")
+          .replace(/\n{3,}/g, "\n\n")
+          .trim();
+
+        return markdown || container.textContent.trim();
       }
 
       // Simple, robust client Markdown to HTML converter

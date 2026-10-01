@@ -1513,7 +1513,10 @@
             /(?:^|;)\s*(?:mso-bidi-)?font-style\s*:\s*italic/.test(rawStyle);
           switch (tag) {
             case "br":
-              return "\n";
+              // Word/Docs frequently export distinct paragraphs as a single <p> with <br> line
+              // breaks instead of separate <p> elements — treat each break as a new paragraph
+              // (prose pasted here is essay-style; true intra-paragraph soft-wraps are rare).
+              return "\n\n";
             case "a":
               return `[${content}](${node.getAttribute("href") || ""})`;
             case "img":

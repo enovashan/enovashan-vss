@@ -214,6 +214,119 @@ input {
   fill: currentColor;
 }
 
+.notif-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.bell-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 2rem;
+  height: 2rem;
+  flex: 0 0 2rem;
+  background: transparent;
+  border: none;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+}
+
+.bell-button svg {
+  display: block;
+  width: 1.4rem;
+  height: 1.4rem;
+  fill: currentColor;
+}
+
+.notif-badge {
+  position: absolute;
+  top: -0.3rem;
+  right: -0.4rem;
+  min-width: 1.1rem;
+  height: 1.1rem;
+  padding: 0 0.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--green, #2d6a4f);
+  color: #fff;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  border-radius: 999px;
+}
+
+.notif-panel {
+  position: absolute;
+  top: calc(100% + 0.6rem);
+  right: 0;
+  width: 320px;
+  max-width: 86vw;
+  background: #fdfcf9;
+  border: 1px solid rgba(23, 38, 60, 0.18);
+  border-radius: 6px;
+  box-shadow: 0 16px 32px rgba(15, 34, 55, 0.18);
+  z-index: 60;
+  overflow: hidden;
+}
+
+.notif-panel-header {
+  padding: 0.75rem 1rem;
+  font-family: "IBM Plex Mono", monospace;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--navy, #0f2237);
+  border-bottom: 1px solid rgba(23, 38, 60, 0.12);
+}
+
+.notif-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.notif-list li + li {
+  border-top: 1px solid rgba(23, 38, 60, 0.08);
+}
+
+.notif-list a {
+  display: block;
+  padding: 0.7rem 1rem;
+  color: var(--ink);
+}
+
+.notif-list a:hover {
+  background: rgba(23, 38, 60, 0.04);
+}
+
+.notif-item-title {
+  display: block;
+  font-weight: 700;
+  font-size: 0.88rem;
+}
+
+.notif-item-summary {
+  display: block;
+  margin-top: 0.2rem;
+  font-size: 0.8rem;
+  color: var(--muted, rgba(23, 38, 60, 0.65));
+  line-height: 1.4;
+}
+
+.notif-empty {
+  padding: 0.9rem 1rem;
+  font-size: 0.85rem;
+  color: var(--muted, rgba(23, 38, 60, 0.65));
+}
+
 .social-icon:hover,
 .social-icon:focus-visible {
   color: var(--green-deep);

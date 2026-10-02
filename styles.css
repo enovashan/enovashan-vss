@@ -1946,18 +1946,30 @@ main {
 @media (min-width: 1101px) and (max-width: 1400px) {
   .topbar {
     display: grid;
-    grid-template-columns: max-content minmax(0, 1fr) max-content;
-    column-gap: 0.9rem;
+    grid-template-columns: max-content minmax(0, 1fr);
+    grid-template-rows: auto auto;
+    row-gap: 0.75rem;
   }
 
   .topbar .brand {
+    grid-column: 1;
+    grid-row: 1;
     flex: none;
   }
 
+  .topbar .toolbar {
+    grid-column: 2;
+    grid-row: 1;
+  }
+
   .topbar .main-nav {
+    grid-column: 1 / -1;
+    grid-row: 2;
+    width: 100%;
     min-width: 0;
     gap: 0.7rem;
     margin: 0;
+    justify-content: flex-start;
     font-size: clamp(0.72rem, 0.9vw, 0.82rem);
     letter-spacing: 0.05em;
   }

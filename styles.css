@@ -1993,3 +1993,56 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+.analytics-consent {
+  position: fixed;
+  z-index: 100;
+  inset: auto 1rem 1rem;
+  max-width: 540px;
+  padding: 1.25rem;
+  background: var(--panel);
+  border: 1px solid var(--ink);
+  box-shadow: 0 12px 36px var(--shadow);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.analytics-consent[hidden] {
+  display: none;
+}
+
+.analytics-consent p {
+  margin: 0 0 1rem;
+}
+
+.analytics-consent__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+
+.analytics-consent button,
+.analytics-settings {
+  cursor: pointer;
+  border: 1px solid var(--ink);
+  padding: 0.5rem 0.8rem;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+.analytics-consent button:first-child {
+  background: var(--ink);
+  color: var(--white);
+}
+
+.analytics-consent button:focus-visible,
+.analytics-settings:focus-visible {
+  outline: 3px solid var(--green-deep);
+  outline-offset: 2px;
+}
+
+.analytics-settings {
+  display: block;
+  margin: 0.75rem auto 1.5rem;
+  font-size: 0.82rem;
+}

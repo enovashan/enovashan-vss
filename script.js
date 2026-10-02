@@ -31,6 +31,9 @@ function initializeNewsletterForm(form) {
       status.textContent = result.alreadySubscribed
         ? "You're already with us — welcome back!"
         : "You're on the list. Check your inbox for a welcome note.";
+      if (result.subscribed && !result.alreadySubscribed) {
+        window.trackEnovashanEvent?.("sign_up", { method: "newsletter" });
+      }
     } catch (error) {
       status.textContent = error.message || "Subscription failed. Please try again.";
     } finally {

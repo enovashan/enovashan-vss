@@ -125,6 +125,7 @@ function buildFullStaticHtml(post) {
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     ${fontLink}
     <link rel="stylesheet" href="styles.css" />
+    <script src="analytics.js" defer><\/script>
     <script src="comments.js" defer><\/script>
     <script src="notifications.js" defer><\/script>
   </head>

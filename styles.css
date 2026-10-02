@@ -703,11 +703,13 @@ main {
   letter-spacing: -0.05em;
 }
 
-.urdu-series-card {
+.urdu-series-card,
+.arabic-series-card {
   gap: 1rem;
 }
 
-.urdu-series-heading {
+.urdu-series-heading,
+.arabic-series-heading {
   display: flex;
   align-items: center;
   gap: 0.8rem;
@@ -764,45 +766,56 @@ main {
   color: rgba(23, 38, 60, 0.8);
 }
 
-.urdu-series-heading .lang-name {
+.urdu-series-heading .lang-name,
+.arabic-series-heading .lang-name {
   display: block;
   line-height: 1.1;
 }
 
-.urdu-series-heading .lang-copy {
+.urdu-series-heading .lang-copy,
+.arabic-series-heading .lang-copy {
   margin-top: 0.3rem;
   font-size: 0.85rem;
 }
 
-.urdu-series-list {
+.urdu-series-list,
+.arabic-series-list {
   display: grid;
   gap: 0.8rem;
   width: 100%;
 }
 
-.urdu-series-item {
+.urdu-series-item,
+.arabic-series-item {
   padding-top: 0.7rem;
   border-top: 1px solid var(--line);
 }
 
-.urdu-series-item h3 {
+.urdu-series-item h3,
+.arabic-series-item h3 {
   margin: 0;
   font-family: "Cormorant Garamond", Georgia, serif;
   font-size: 1.5rem;
   line-height: 1.15;
 }
 
-.urdu-series-item h3 a {
+.urdu-series-item h3 a,
+.arabic-series-item h3 a {
   text-decoration: none;
 }
 
 .urdu-series-item h3 a:hover,
-.urdu-series-item h3 a:focus-visible {
+.urdu-series-item h3 a:focus-visible,
+.arabic-series-item h3 a:hover,
+.arabic-series-item h3 a:focus-visible,
+.arabic-series-heading .lang-name a:hover,
+.arabic-series-heading .lang-name a:focus-visible {
   text-decoration: underline;
   text-underline-offset: 3px;
 }
 
-.urdu-series-item p {
+.urdu-series-item p,
+.arabic-series-item p {
   margin: 0.25rem 0 0;
   font-size: 0.9rem;
   line-height: 1.6;

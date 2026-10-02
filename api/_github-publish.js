@@ -249,9 +249,9 @@ function removeSnippetFromHtml(pageHtml, slug, kind = "card") {
   return pageHtml.replace(blockRe, "");
 }
 
-// Builds the item markup for the hand-curated English/Urdu series lists on the home page
+// Builds the item markup for the language lists on the home page
 function buildSeriesItemSnippet(post) {
-  const itemClass = post.language === "ur" ? "urdu-series-item" : "english-series-item";
+  const itemClass = { en: "english-series-item", ur: "urdu-series-item", ar: "arabic-series-item" }[post.language];
   return `<article class="${itemClass}">
   <h3><a href="${escapeHtml(post.slug)}.html">${escapeHtml(post.title)}</a></h3>
   <p>${escapeHtml(post.summary || "")}</p>
@@ -311,17 +311,17 @@ async function publishPostToGitHub(post) {
     await ghPutFile(config, targetFilename, updatedTargetHtml, `cms: list ${post.slug} on ${targetFilename}`, targetFile.sha);
   }
 
-  // The latest posts and the English/Urdu series lists live in index.html.
+  // The latest posts and language lists live in index.html.
   const homeFile = await ghGetFile(config, "index.html");
   if (!homeFile) {
     throw new Error("Could not read index.html from the repository.");
   }
   let homeHtml = updateLatestPosts(homeFile.content, await getLatestPublishedPosts());
 
-  if (post.language === "en") {
-    homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "english-series-list", "series");
-  } else if (post.language === "ur") {
-    homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), "urdu-series-list", "series");
+  homeHtml = removeSnippetFromHtml(homeHtml, post.slug, "series");
+  if (["en", "ur", "ar"].includes(post.language)) {
+    const listClass = { en: "english-series-list", ur: "urdu-series-list", ar: "arabic-series-list" }[post.language];
+    homeHtml = upsertSnippetInHtml(homeHtml, post.slug, buildSeriesItemSnippet(post), listClass, "series");
   }
 
   if (homeHtml !== homeFile.content) {

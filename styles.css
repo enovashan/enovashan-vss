@@ -1887,7 +1887,7 @@ main {
   .topbar .main-nav {
     order: 3;
     flex: 1 0 100%;
-    justify-content: flex-start;
+    justify-content: center;
     margin: 0;
     overflow-x: auto;
   }
@@ -1970,7 +1970,7 @@ main {
     min-width: 0;
     gap: 0.7rem;
     margin: 0;
-    justify-content: flex-start;
+    justify-content: center;
     font-size: clamp(0.84rem, 1vw, 0.94rem);
     letter-spacing: 0.05em;
   }
@@ -1983,10 +1983,13 @@ main {
     padding-right: 0.8rem;
   }
 
+  .topbar .main-nav {
+    justify-content: flex-start;
+  }
+
   .main-nav {
     order: 3;
     width: 100%;
-    justify-content: flex-start;
     gap: 1.25rem;
     margin: 0;
     overflow-x: auto;

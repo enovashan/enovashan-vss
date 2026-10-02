@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Search — Enovashan</title>
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="notifications.js" defer></script>
+    <script src="search.js" defer></script>
+  </head>
+  <body>
+    <div class="page-shell page-shell--subpage">
+      <header class="topbar">
+        <a class="brand" href="index.html" aria-label="Enovashan home">
+          <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 58 58" focusable="false"><path class="brand-mark__frame" d="M15 49V11h29v17"/><path class="brand-mark__n" d="M22 43V22l16 18V22"/><circle class="brand-mark__signal" cx="45" cy="12" r="4"/></svg></div>
+          <div class="brand-name">Enovashan</div>
+        </a>
+        <nav class="main-nav" aria-label="Main navigation">
+          <a href="index.html">Home</a><a href="stories.html">Stories</a><a href="books.html">Book notes</a><a href="watch.html">Watch</a><a href="books.html">Learn</a><a href="recipes.html">Recipes</a><a href="shop.html">Shop</a><a href="about.html">About</a>
+        </nav>
+        <div class="toolbar">
+          <div class="header-updates">
+            <a href="search.html" class="search-icon" aria-label="Search the site" title="Search">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m15.5 15.5 5 5"/></svg>
+            </a>
+            <a href="newsletter.html" class="newsletter-icon" aria-label="Join the dispatch newsletter" title="Join the dispatch">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="m3.5 7 8.5 6 8.5-6"/></svg>
+            </a>
+            <div class="notif-wrap">
+              <button class="icon-button bell-button" id="notifBell" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Latest updates">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a6 6 0 00-6 6v3.09c0 .58-.18 1.14-.5 1.62l-1.3 1.9c-.76 1.12.03 2.64 1.38 2.64h12.84c1.35 0 2.14-1.52 1.38-2.64l-1.3-1.9a2.9 2.9 0 01-.5-1.62/V8a6 6 0 00-6-6zm0 20a2.5 2.5 0 002.45-2h-4.9A2.5 2.5 0 0012 22z"/></svg>
+                <span class="notif-badge" id="notifBadge" hidden>0</span>
+              </button>
+              <div class="notif-panel" id="notifPanel" hidden role="menu" aria-label="Latest updates">
+                <div class="notif-panel-header">Latest updates</div>
+                <ul class="notif-list" id="notifList"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      </header>
+      <main class="content-page search-page">
+        <section class="page-hero tight-hero narrow-hero">
+          <div class="meta-label">Explore Enovashan</div>
+          <h1>Search the site.</h1>
+          <p>Find stories, ideas, and pages in English, Urdu, and Arabic.</p>
+        </section>
+        <form id="site-search-form" role="search">
+          <label for="site-search-input">Search all content</label>
+          <div class="search-fields">
+            <input id="site-search-input" type="search" name="q" placeholder="Search stories and pages" autocomplete="off" />
+            <button type="submit">Search</button>
+          </div>
+        </form>
+        <p id="search-status" role="status" aria-live="polite"></p>
+        <div id="search-results"></div>
+      </main>
+      <footer class="site-footer"><div class="footer-bottom"><span>© 2025 Enovashan</span><span>Built for the curious</span></div></footer>
+    </div>
+  </body>
+</html>

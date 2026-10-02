@@ -203,7 +203,8 @@ input {
   gap: 0.4rem;
 }
 
-.newsletter-icon {
+.newsletter-icon,
+.search-icon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -213,7 +214,8 @@ input {
   color: var(--ink);
 }
 
-.newsletter-icon svg {
+.newsletter-icon svg,
+.search-icon svg {
   display: block;
   width: 1.5rem;
   height: 1.5rem;
@@ -225,11 +227,14 @@ input {
 }
 
 .newsletter-icon:hover,
-.newsletter-icon:focus-visible {
+.newsletter-icon:focus-visible,
+.search-icon:hover,
+.search-icon:focus-visible {
   color: var(--green-deep);
 }
 
-.newsletter-icon:focus-visible {
+.newsletter-icon:focus-visible,
+.search-icon:focus-visible {
   outline: 2px solid currentColor;
   outline-offset: 3px;
 }
@@ -1164,6 +1169,71 @@ main {
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: rgba(23, 38, 60, 0.72);
+}
+
+.search-page {
+  max-width: 900px;
+}
+
+#site-search-form label {
+  display: block;
+  margin-bottom: 0.7rem;
+  font-weight: 700;
+}
+
+.search-fields {
+  display: flex;
+  gap: 0.7rem;
+}
+
+.search-fields input {
+  flex: 1;
+  min-width: 0;
+  padding: 0.9rem;
+  border: 1px solid var(--line);
+  border-radius: 0.4rem;
+  background: var(--panel);
+}
+
+.search-fields button {
+  padding: 0.7rem 1.2rem;
+  border: 1px solid var(--ink);
+  border-radius: 0.4rem;
+  background: var(--ink);
+  color: var(--white);
+  cursor: pointer;
+}
+
+#search-status {
+  margin: 1.5rem 0;
+}
+
+.search-result {
+  padding: 1.2rem 0;
+  border-top: 1px solid var(--line);
+}
+
+.search-result h2 {
+  margin: 0 0 0.5rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: 2rem;
+}
+
+.search-result a:hover,
+.search-result a:focus-visible {
+  text-decoration: underline;
+}
+
+.search-result p {
+  margin: 0;
+  line-height: 1.6;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .search-fields {
+    flex-direction: column;
+  }
 }
 
 

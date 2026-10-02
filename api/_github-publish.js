@@ -119,6 +119,7 @@ function buildFullStaticHtml(post) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)} — Enovashan</title>
     <meta name="description" content="${escapeHtml(summary || title)}" />
+    <link rel="canonical" href="https://www.enovashan.com/${escapeHtml(slug)}" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -288,6 +289,20 @@ function updateLatestPosts(homeHtml, posts) {
   return homeHtml.slice(0, startIndex) + `${start}\n${cards}\n` + homeHtml.slice(endIndex);
 }
 
+async function updateSitemap(config, slug, published) {
+  const sitemap = await ghGetFile(config, "sitemap.xml");
+  if (!sitemap) throw new Error("Could not read sitemap.xml from the repository.");
+  const entry = `<url><loc>https://www.enovashan.com/${slug}</loc></url>`;
+  let content = sitemap.content.replace(entry, "");
+  if (published) {
+    if (!content.includes("</urlset>")) throw new Error("Invalid sitemap.xml: missing urlset.");
+    content = content.replace("</urlset>", `${entry}</urlset>`);
+  }
+  if (content !== sitemap.content) {
+    await ghPutFile(config, "sitemap.xml", content, `cms: update sitemap for ${slug}`, sitemap.sha);
+  }
+}
+
 // Commits the article page + inserts its card into the target (and optionally home) directory page
 async function publishPostToGitHub(post) {
   const config = getGithubConfig();
@@ -328,8 +343,9 @@ async function publishPostToGitHub(post) {
     await ghPutFile(config, "index.html", homeHtml, `cms: update home page for ${post.slug}`, homeFile.sha);
   }
 
+  await updateSitemap(config, post.slug, true);
   return {
-    articleUrl: `https://www.enovashan.com/${post.slug}.html`,
+    articleUrl: `https://www.enovashan.com/${post.slug}`,
   };
 }
 
@@ -363,6 +379,7 @@ async function unpublishPostFromGitHub(post) {
       await ghPutFile(config, "index.html", homeHtml, `cms: unfeature ${post.slug} from home`, homeFile.sha);
     }
   }
+  await updateSitemap(config, post.slug, false);
 }
 
 module.exports = {

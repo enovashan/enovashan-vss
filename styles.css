@@ -1880,7 +1880,7 @@ main {
   }
 
   .topbar .brand {
-    flex: 1 0 auto;
+    flex: 0 1 auto;
   }
 
   .topbar .main-nav {
@@ -1944,10 +1944,22 @@ main {
 }
 
 @media (min-width: 1101px) and (max-width: 1400px) {
+  .topbar {
+    display: grid;
+    grid-template-columns: max-content minmax(0, 1fr) max-content;
+    column-gap: 0.9rem;
+  }
+
+  .topbar .brand {
+    flex: none;
+  }
+
   .topbar .main-nav {
-    gap: 1rem;
-    font-size: 0.82rem;
-    letter-spacing: 0.08em;
+    min-width: 0;
+    gap: 0.7rem;
+    margin: 0;
+    font-size: clamp(0.72rem, 0.9vw, 0.82rem);
+    letter-spacing: 0.05em;
   }
 }
 

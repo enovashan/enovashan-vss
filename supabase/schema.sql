@@ -57,6 +57,67 @@ $$;
 revoke all on function public.consume_comment_rate_limit(text) from public, anon, authenticated;
 grant execute on function public.consume_comment_rate_limit(text) to service_role;
 
+create table if not exists public.topic_suggestions (
+  id uuid primary key default gen_random_uuid(),
+  suggestion text not null check (char_length(suggestion) between 1 and 500),
+  language text not null check (language in ('en', 'ur', 'ar')),
+  dedupe_key text not null unique,
+  completed boolean not null default false,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create index if not exists topic_suggestions_created_idx
+  on public.topic_suggestions (created_at desc);
+
+alter table public.topic_suggestions enable row level security;
+revoke all on public.topic_suggestions from anon, authenticated;
+grant all on public.topic_suggestions to service_role;
+
+create table if not exists public.topic_suggestion_rate_limits (
+  fingerprint text primary key,
+  window_started_at timestamptz not null,
+  attempt_count integer not null check (attempt_count > 0)
+);
+
+alter table public.topic_suggestion_rate_limits enable row level security;
+revoke all on public.topic_suggestion_rate_limits from anon, authenticated;
+grant all on public.topic_suggestion_rate_limits to service_role;
+
+create or replace function public.consume_topic_suggestion_rate_limit(p_fingerprint text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  current_window timestamptz;
+  current_count integer;
+begin
+  delete from public.topic_suggestion_rate_limits
+  where window_started_at < now() - interval '1 day';
+
+  insert into public.topic_suggestion_rate_limits (fingerprint, window_started_at, attempt_count)
+  values (p_fingerprint, now(), 1)
+  on conflict (fingerprint) do update
+    set window_started_at = case
+          when topic_suggestion_rate_limits.window_started_at < now() - interval '1 hour' then now()
+          else topic_suggestion_rate_limits.window_started_at
+        end,
+        attempt_count = case
+          when topic_suggestion_rate_limits.window_started_at < now() - interval '1 hour' then 1
+          else topic_suggestion_rate_limits.attempt_count + 1
+        end
+  returning window_started_at, attempt_count
+  into current_window, current_count;
+
+  return current_window >= now() - interval '1 hour' and current_count <= 5;
+end;
+$$;
+
+revoke all on function public.consume_topic_suggestion_rate_limit(text) from public, anon, authenticated;
+grant execute on function public.consume_topic_suggestion_rate_limit(text) to service_role;
+
 create table if not exists public.subscribers (
   id uuid primary key default gen_random_uuid(),
   email text not null unique check (char_length(email) between 5 and 254),
@@ -103,4 +164,3 @@ create index if not exists posts_slug_idx
 alter table public.posts enable row level security;
 revoke all on public.posts from anon, authenticated;
 grant all on public.posts to service_role;
-

@@ -711,6 +711,77 @@
         font-size: 2rem;
         margin: 0.5rem 0;
       }
+
+      .cms-suggestion-card {
+        display: flex;
+        justify-content: space-between;
+        gap: 1.25rem;
+        margin-bottom: 0.85rem;
+        padding: 1.1rem 1.25rem;
+        border: 1px solid var(--cms-border);
+        border-radius: 6px;
+        background: var(--cms-card);
+      }
+
+      .cms-suggestion-copy {
+        flex: 1;
+        min-width: 0;
+      }
+
+      .cms-suggestion-text {
+        margin: 0.5rem 0;
+        font-size: 1rem;
+        line-height: 1.6;
+        overflow-wrap: anywhere;
+        white-space: pre-wrap;
+      }
+
+      .cms-suggestion-copy[dir="rtl"],
+      .cms-suggestion-edit[dir="rtl"] {
+        font-family: "Noto Nastaliq Urdu", serif;
+        text-align: right;
+      }
+
+      .cms-suggestion-edit {
+        display: grid;
+        gap: 0.7rem;
+        margin-top: 0.8rem;
+      }
+
+      .cms-suggestion-edit textarea,
+      .cms-suggestion-edit select {
+        width: 100%;
+        padding: 0.65rem 0.8rem;
+        border: 1px solid var(--cms-border-dark);
+        border-radius: 4px;
+        font: inherit;
+      }
+
+      .cms-suggestion-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 0.4rem;
+        min-width: 140px;
+      }
+
+      .cms-suggestion-actions button {
+        width: 100%;
+      }
+
+      @media (max-width: 700px) {
+        .cms-suggestion-card {
+          flex-direction: column;
+        }
+
+        .cms-suggestion-actions {
+          flex-direction: row;
+          flex-wrap: wrap;
+        }
+
+        .cms-suggestion-actions button {
+          width: auto;
+        }
+      }
     </style>
   </head>
   <body>
@@ -733,6 +804,7 @@
       <nav class="cms-nav-tabs" id="cmsNavTabs" style="display: none;">
         <button class="cms-tab-btn active" id="tabArticlesBtn" onclick="switchMainView('articles')">Articles</button>
         <button class="cms-tab-btn" id="tabEditorBtn" onclick="switchMainView('editor')">+ New Article</button>
+        <button class="cms-tab-btn" id="tabSuggestionsBtn" onclick="switchMainView('suggestions')">Topic Ideas</button>
       </nav>
 
       <div class="cms-user-pill" id="cmsUserPill" style="display: none;">
@@ -808,7 +880,29 @@
         </div>
       </section>
 
-      <!-- VIEW 3: COMPOSER & MARKDOWN EDITOR -->
+      <!-- VIEW 3: TOPIC SUGGESTIONS -->
+      <section id="suggestionsSection" style="display: none;">
+        <div class="cms-posts-header">
+          <div>
+            <h2>Topic Ideas</h2>
+            <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">
+              Review visitor suggestions in English, Urdu, and Arabic. Completion changes appear on the public suggestions page.
+            </p>
+          </div>
+          <p style="margin: 0; font-weight: 700;">
+            <span id="cmsSuggestionCompletedCount">0 completed</span> ·
+            <span id="cmsSuggestionPendingCount">0 pending</span>
+          </p>
+        </div>
+        <div id="cmsSuggestionsList">
+          <div class="empty-state">
+            <h3>Loading suggestions…</h3>
+            <p style="color: var(--muted);">Connecting to Supabase</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 4: COMPOSER & MARKDOWN EDITOR -->
       <section id="editorSection" style="display: none;">
         <!-- Metadata Panel -->
         <div class="cms-meta-panel">
@@ -1082,8 +1176,10 @@
       let currentSessionToken = localStorage.getItem(STORAGE_KEY) || "";
       let currentUser = null;
       let allPosts = [];
+      let allSuggestions = [];
       let activeFilter = "all";
       let currentEditingPost = null;
+      let currentEditingSuggestionId = null;
 
       // Initialize on load
       window.addEventListener("DOMContentLoaded", async () => {
@@ -1140,6 +1236,7 @@
 
           showAppView();
           await loadPosts();
+          await loadSuggestions();
         } catch (err) {
           showAlert(err.message, "danger", 8000);
         } finally {
@@ -1160,6 +1257,7 @@
           currentUser = data.user;
           showAppView();
           await loadPosts();
+          await loadSuggestions();
         } catch {
           handleSignOut(false);
         }
@@ -1180,6 +1278,7 @@
         document.getElementById("authSection").style.display = "block";
         document.getElementById("articlesSection").style.display = "none";
         document.getElementById("editorSection").style.display = "none";
+        document.getElementById("suggestionsSection").style.display = "none";
         document.getElementById("cmsNavTabs").style.display = "none";
         document.getElementById("cmsUserPill").style.display = "none";
       }
@@ -1195,18 +1294,23 @@
       function switchMainView(view) {
         const tabArticles = document.getElementById("tabArticlesBtn");
         const tabEditor = document.getElementById("tabEditorBtn");
+        const tabSuggestions = document.getElementById("tabSuggestionsBtn");
         const secArticles = document.getElementById("articlesSection");
         const secEditor = document.getElementById("editorSection");
+        const secSuggestions = document.getElementById("suggestionsSection");
+
+        [tabArticles, tabEditor, tabSuggestions].forEach((tab) => tab.classList.remove("active"));
+        [secArticles, secEditor, secSuggestions].forEach((section) => section.style.display = "none");
 
         if (view === "articles") {
           tabArticles.classList.add("active");
-          tabEditor.classList.remove("active");
           secArticles.style.display = "block";
-          secEditor.style.display = "none";
+        } else if (view === "suggestions") {
+          tabSuggestions.classList.add("active");
+          secSuggestions.style.display = "block";
+          loadSuggestions();
         } else {
-          tabArticles.classList.remove("active");
           tabEditor.classList.add("active");
-          secArticles.style.display = "none";
           secEditor.style.display = "block";
           updateLivePreview();
         }
@@ -1232,6 +1336,158 @@
               <p style="color: #b91c1c;">${escapeHtml(err.message)}</p>
             </div>
           `;
+        }
+      }
+
+      async function loadSuggestions() {
+        const container = document.getElementById("cmsSuggestionsList");
+        try {
+          const res = await fetch("/api/cms-suggestions", {
+            headers: { Authorization: `Bearer ${currentSessionToken}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to load suggestions.");
+          allSuggestions = data.suggestions || [];
+          renderSuggestionsList();
+        } catch (err) {
+          showAlert(err.message, "danger");
+          container.innerHTML = `
+            <div class="empty-state">
+              <h3>Could not load suggestions</h3>
+              <p style="color: #b91c1c;">${escapeHtml(err.message)}</p>
+            </div>
+          `;
+        }
+      }
+
+      function renderSuggestionsList() {
+        const container = document.getElementById("cmsSuggestionsList");
+        const completed = allSuggestions.filter((suggestion) => suggestion.completed).length;
+        const pending = allSuggestions.length - completed;
+        document.getElementById("cmsSuggestionCompletedCount").textContent = `${completed} completed`;
+        document.getElementById("cmsSuggestionPendingCount").textContent = `${pending} pending`;
+
+        if (allSuggestions.length === 0) {
+          container.innerHTML = `
+            <div class="empty-state">
+              <h3>No topic ideas yet</h3>
+              <p style="color: var(--muted);">Visitor suggestions will appear here.</p>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = allSuggestions.map((suggestion) => {
+          const isEditing = currentEditingSuggestionId === suggestion.id;
+          const isRtl = suggestion.language === "ur" || suggestion.language === "ar";
+          const date = suggestion.created_at
+            ? new Date(suggestion.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+            : "";
+          const languageLabel = { en: "English", ur: "اردو — Urdu", ar: "العربية — Arabic" }[suggestion.language] || "English";
+          const editForm = isEditing ? `
+            <div class="cms-suggestion-edit" ${isRtl ? 'dir="rtl"' : ""}>
+              <textarea id="suggestionEditText" maxlength="500" rows="3">${escapeHtml(suggestion.suggestion)}</textarea>
+              <select id="suggestionEditLanguage" onchange="setSuggestionEditorLanguage(this.value)">
+                <option value="en" ${suggestion.language === "en" ? "selected" : ""}>English</option>
+                <option value="ur" ${suggestion.language === "ur" ? "selected" : ""}>اردو — Urdu</option>
+                <option value="ar" ${suggestion.language === "ar" ? "selected" : ""}>العربية — Arabic</option>
+              </select>
+              <div style="display:flex; gap:0.5rem; flex-wrap:wrap;">
+                <button class="cms-btn-primary" onclick="saveSuggestion('${suggestion.id}')">Save Changes</button>
+                <button class="cms-btn-secondary" onclick="cancelEditSuggestion()">Cancel</button>
+              </div>
+            </div>
+          ` : "";
+          return `
+            <article class="cms-suggestion-card">
+              <div class="cms-suggestion-copy" ${isRtl && !isEditing ? 'dir="rtl"' : ""}>
+                <div class="cms-post-meta-row">
+                  <span class="cms-post-badge ${suggestion.completed ? "cms-badge-published" : "cms-badge-draft"}">${suggestion.completed ? "Completed" : "Pending"}</span>
+                  <span class="cms-post-badge">${escapeHtml(languageLabel)}</span>
+                  <span style="font-size:0.8rem; color:var(--muted); margin-left:auto;">${escapeHtml(date)}</span>
+                </div>
+                ${isEditing ? "" : `<p class="cms-suggestion-text">${escapeHtml(suggestion.suggestion)}</p>`}
+                ${editForm}
+              </div>
+              <div class="cms-suggestion-actions">
+                <button class="cms-btn-primary ${suggestion.completed ? "" : "cms-btn-success"}" onclick="setSuggestionCompleted('${suggestion.id}', ${!suggestion.completed})">
+                  ${suggestion.completed ? "Mark Pending" : "✓ Mark Completed"}
+                </button>
+                ${isEditing ? "" : `<button class="cms-btn-secondary" onclick="startEditSuggestion('${suggestion.id}')">Edit</button>`}
+                <button class="cms-btn-secondary" style="color:#b91c1c;" onclick="deleteSuggestion('${suggestion.id}')">Delete</button>
+              </div>
+            </article>
+          `;
+        }).join("");
+      }
+
+      function startEditSuggestion(id) {
+        currentEditingSuggestionId = id;
+        renderSuggestionsList();
+      }
+
+      function cancelEditSuggestion() {
+        currentEditingSuggestionId = null;
+        renderSuggestionsList();
+      }
+
+      function setSuggestionEditorLanguage(language) {
+        const editor = document.querySelector(".cms-suggestion-edit");
+        const textarea = document.getElementById("suggestionEditText");
+        const isRtl = language === "ur" || language === "ar";
+        editor.dir = isRtl ? "rtl" : "ltr";
+        textarea.dir = editor.dir;
+        textarea.lang = language;
+      }
+
+      async function saveSuggestion(id) {
+        const suggestion = document.getElementById("suggestionEditText").value.trim();
+        const language = document.getElementById("suggestionEditLanguage").value;
+        if (await updateSuggestion(id, { suggestion, language }, "Suggestion updated.")) {
+          currentEditingSuggestionId = null;
+          renderSuggestionsList();
+        }
+      }
+
+      async function setSuggestionCompleted(id, completed) {
+        await updateSuggestion(id, { completed }, completed ? "Suggestion marked completed." : "Suggestion marked pending.");
+      }
+
+      async function updateSuggestion(id, changes, successMessage) {
+        try {
+          const res = await fetch(`/api/cms-suggestions?id=${encodeURIComponent(id)}`, {
+            method: "PATCH",
+            headers: {
+              "content-type": "application/json",
+              Authorization: `Bearer ${currentSessionToken}`,
+            },
+            body: JSON.stringify(changes),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to update suggestion.");
+          showAlert(successMessage, "success");
+          await loadSuggestions();
+          return true;
+        } catch (err) {
+          showAlert(err.message, "danger");
+          return false;
+        }
+      }
+
+      async function deleteSuggestion(id) {
+        const suggestion = allSuggestions.find((item) => item.id === id);
+        if (!suggestion || !confirm(`Delete this suggestion?\n\n${suggestion.suggestion}`)) return;
+        try {
+          const res = await fetch(`/api/cms-suggestions?id=${encodeURIComponent(id)}`, {
+            method: "DELETE",
+            headers: { Authorization: `Bearer ${currentSessionToken}` },
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to delete suggestion.");
+          showAlert("Suggestion deleted.", "info");
+          await loadSuggestions();
+        } catch (err) {
+          showAlert(err.message, "danger");
         }
       }
 
@@ -1860,7 +2116,7 @@
         </a>
         <nav class="main-nav" aria-label="Main navigation">
           <a href="index.html">Home</a>
-          <a href="stories.html">Stories</a><a href="books.html">Book notes</a><a href="watch.html">Watch</a><a href="books.html">Learn</a><a href="recipes.html">Recipes</a><a href="shop.html">Shop</a><a href="about.html">About</a>
+          <a href="stories.html">Stories</a><a href="books.html">Book notes</a><a href="watch.html">Watch</a><a href="books.html">Learn</a><a href="recipes.html">Recipes</a><a href="shop.html">Shop</a><a href="about.html">About</a><a href="suggestions.html">Suggest a Topic</a>
         </nav>
         <div class="toolbar">
           <div class="header-updates">

@@ -1737,14 +1737,180 @@ main {
   line-height: 1.5;
 }
 
+.suggestions-page {
+  padding-bottom: 2rem;
+}
+
+.suggestion-form-panel {
+  margin: 1.5rem 0 2.5rem;
+  padding: 1.4rem;
+  border: 1px solid var(--line);
+  border-radius: 1rem;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.suggestion-form-panel h2,
+.suggestion-list-header h2 {
+  margin: 0 0 0.8rem;
+  font-family: "Cormorant Garamond", Georgia, serif;
+  font-size: clamp(1.8rem, 3vw, 2.6rem);
+  color: var(--heading);
+}
+
+.suggestion-form-panel .comment-form {
+  max-width: 760px;
+}
+
+.suggestion-form-panel .comment-form select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0.65rem 0.85rem;
+  border: 1px solid var(--line);
+  border-radius: 0.25rem;
+  background: rgba(255, 255, 255, 0.28);
+  color: var(--ink);
+  font: inherit;
+  font-weight: 400;
+}
+
+.suggestion-honeypot {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.suggestion-list-section {
+  padding-top: 0.5rem;
+}
+
+.suggestion-list-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 0.8rem;
+  border-bottom: 1px solid var(--line);
+}
+
+.suggestion-list-header h2 {
+  margin: 0.4rem 0 0;
+}
+
+.suggestion-counts,
+.suggestion-list-intro {
+  margin: 0;
+  color: rgba(23, 38, 60, 0.72);
+  font-size: 0.9rem;
+}
+
+.suggestion-list-intro {
+  margin: 0.8rem 0 0;
+}
+
+.suggestion-list {
+  display: grid;
+  gap: 0.65rem;
+  margin: 1rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.suggestion-item {
+  display: grid;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 0.85rem;
+  padding: 1rem;
+  border: 1px solid var(--line);
+  border-radius: 0.65rem;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.suggestion-mark {
+  display: grid;
+  place-items: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  color: #506a18;
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.suggestion-item[data-completed="true"] .suggestion-mark {
+  font-size: 1.2rem;
+}
+
+.suggestion-item-text {
+  margin: 0;
+  color: var(--ink);
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.suggestion-item-text[dir="rtl"],
+.suggestion-language[dir="rtl"] {
+  font-family: "Noto Nastaliq Urdu", serif;
+  text-align: right;
+}
+
+.suggestion-language {
+  color: var(--muted);
+  font-size: 0.75rem;
+  white-space: nowrap;
+}
+
+.suggestion-empty {
+  padding: 1.2rem;
+  border: 1px dashed var(--line);
+  border-radius: 0.65rem;
+  color: var(--muted);
+}
+
 .cart-link {
   text-decoration: none;
 }
 
 @media (max-width: 1100px) {
+  .topbar {
+    flex-wrap: wrap;
+  }
+
+  .topbar .brand {
+    flex: 1 0 auto;
+  }
+
+  .topbar .main-nav {
+    order: 3;
+    flex: 1 0 100%;
+    justify-content: flex-start;
+    margin: 0;
+    overflow-x: auto;
+  }
+
+  .topbar .toolbar {
+    margin-left: auto;
+  }
+
   .main-nav {
     gap: 1rem;
     font-size: 0.86rem;
+  }
+
+  .suggestion-list-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .suggestion-item {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+  }
+
+  .suggestion-language {
+    grid-column: 2;
   }
 
   .hero {
@@ -1774,6 +1940,14 @@ main {
 
   .shop-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1101px) and (max-width: 1400px) {
+  .topbar .main-nav {
+    gap: 1rem;
+    font-size: 0.82rem;
+    letter-spacing: 0.08em;
   }
 }
 

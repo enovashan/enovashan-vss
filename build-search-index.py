@@ -57,7 +57,7 @@ def clean(parts):
 
 pages = []
 for path in sorted(ROOT.glob("*.html")):
-    if path.name in CMS_ARTICLES or path.name == "search.html":
+    if path.name in CMS_ARTICLES or path.name in {"search.html", "suggestions.html"}:
         continue
     parser = PageText()
     parser.feed(path.read_text(encoding="utf-8"))

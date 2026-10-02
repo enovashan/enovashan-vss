@@ -119,7 +119,8 @@ input {
   margin-left: auto;
   margin-right: auto;
   font-family: "IBM Plex Mono", "Courier New", monospace;
-  font-size: 1rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   letter-spacing: 0.12em;
   text-transform: uppercase;
   white-space: nowrap;
@@ -1897,7 +1898,7 @@ main {
 
   .main-nav {
     gap: 1rem;
-    font-size: 0.86rem;
+    font-size: 0.9rem;
   }
 
   .suggestion-list-header {
@@ -1970,7 +1971,7 @@ main {
     gap: 0.7rem;
     margin: 0;
     justify-content: flex-start;
-    font-size: clamp(0.72rem, 0.9vw, 0.82rem);
+    font-size: clamp(0.84rem, 1vw, 0.94rem);
     letter-spacing: 0.05em;
   }
 }
@@ -1990,7 +1991,7 @@ main {
     margin: 0;
     overflow-x: auto;
     padding-bottom: 0.2rem;
-    font-size: 0.78rem;
+    font-size: 0.82rem;
   }
 
   .brand-name {

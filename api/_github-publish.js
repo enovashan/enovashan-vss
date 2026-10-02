@@ -303,6 +303,45 @@ async function updateSitemap(config, slug, published) {
   }
 }
 
+const goodWorkTranslations = {
+  en: "the-architecture-of-good-work",
+  ur: "good-work-urdu",
+  ar: "the-architecture-goodwork-ar",
+};
+
+async function updateTranslationAlternates(config, slug) {
+  if (!Object.values(goodWorkTranslations).includes(slug)) return;
+
+  const articles = await Promise.all(
+    Object.entries(goodWorkTranslations).map(async ([language, articleSlug]) => ({
+      language,
+      slug: articleSlug,
+      file: await ghGetFile(config, `${articleSlug}.html`),
+    }))
+  );
+  const published = articles.filter((article) => article.file);
+  for (const article of published) {
+    let html = article.file.content;
+    for (const [language, articleSlug] of Object.entries(goodWorkTranslations)) {
+      html = html.replace(
+        `    <link rel="alternate" hreflang="${language}" href="https://www.enovashan.com/${articleSlug}" />\n`,
+        ""
+      );
+    }
+    const canonical = `    <link rel="canonical" href="https://www.enovashan.com/${article.slug}" />`;
+    if (!html.includes(canonical)) throw new Error(`Missing canonical in ${article.slug}.html.`);
+    if (published.length > 1) {
+      const links = published.map(({ language, slug: articleSlug }) =>
+        `    <link rel="alternate" hreflang="${language}" href="https://www.enovashan.com/${articleSlug}" />`
+      ).join("\n");
+      html = html.replace(canonical, `${canonical}\n${links}`);
+    }
+    if (html !== article.file.content) {
+      await ghPutFile(config, `${article.slug}.html`, html, `cms: update translations for ${article.slug}`, article.file.sha);
+    }
+  }
+}
+
 // Commits the article page + inserts its card into the target (and optionally home) directory page
 async function publishPostToGitHub(post) {
   const config = getGithubConfig();
@@ -344,6 +383,7 @@ async function publishPostToGitHub(post) {
   }
 
   await updateSitemap(config, post.slug, true);
+  await updateTranslationAlternates(config, post.slug);
   return {
     articleUrl: `https://www.enovashan.com/${post.slug}`,
   };
@@ -380,6 +420,7 @@ async function unpublishPostFromGitHub(post) {
     }
   }
   await updateSitemap(config, post.slug, false);
+  await updateTranslationAlternates(config, post.slug);
 }
 
 module.exports = {

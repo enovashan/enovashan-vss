@@ -297,6 +297,10 @@ input {
   border-radius: 999px;
 }
 
+.notif-badge[hidden] {
+  display: none;
+}
+
 .notif-panel {
   position: absolute;
   top: calc(100% + 0.6rem);

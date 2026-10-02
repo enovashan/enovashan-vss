@@ -1,4 +1,4 @@
-// Home page "Latest updates" bell: shows a badge count of articles published in the last 7 days.
+// "Latest updates" bell: shows a badge count of articles published in the last 7 days.
 // The count is purely time-based (computed fresh on every page load), so it naturally clears itself
 // once a week passes with no new publications — no per-visitor tracking involved.
 (function () {
@@ -11,9 +11,23 @@
     const list = document.getElementById("notifList");
     if (!bell || !badge || !panel || !list) return;
 
+    list.innerHTML = '<li class="notif-empty">Loading updates…</li>';
+    bell.addEventListener("click", () => {
+      const isOpen = !panel.hidden;
+      panel.hidden = isOpen;
+      bell.setAttribute("aria-expanded", String(!isOpen));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!panel.hidden && !event.target.closest(".notif-wrap")) {
+        panel.hidden = true;
+        bell.setAttribute("aria-expanded", "false");
+      }
+    });
+
     try {
       const res = await fetch("/api/posts-feed");
-      if (!res.ok) return;
+      if (!res.ok) throw new Error(`Updates feed failed (HTTP ${res.status}).`);
       const data = await res.json();
       const posts = data.posts || [];
 
@@ -32,21 +46,8 @@
         })
         .join("") || '<li class="notif-empty">No new updates this week.</li>';
     } catch {
-      // Silently ignore — the bell just won't show a badge if the feed can't be reached
+      list.innerHTML = '<li class="notif-empty">Updates are unavailable right now.</li>';
     }
-
-    bell.addEventListener("click", () => {
-      const isOpen = !panel.hidden;
-      panel.hidden = isOpen;
-      bell.setAttribute("aria-expanded", String(!isOpen));
-    });
-
-    document.addEventListener("click", (event) => {
-      if (!panel.hidden && !event.target.closest(".notif-wrap")) {
-        panel.hidden = true;
-        bell.setAttribute("aria-expanded", "false");
-      }
-    });
   });
 
   function escapeHtml(str) {

@@ -1,5 +1,5 @@
 (function () {
-  const measurementId = "G-2WZ981QYSD";
+  const measurementId = "G-HVZR23N80Z";
   const storageKey = "enovashan-analytics-consent";
   const labels = {
     en: {

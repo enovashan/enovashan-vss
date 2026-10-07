@@ -27,7 +27,7 @@ module.exports = async function handler(request, response) {
     const results = posts.filter((post) =>
       [post.title, post.summary, post.content_markdown].some((value) => value?.toLocaleLowerCase().includes(query))
     ).slice(0, 30).map((post) => ({
-      url: `${post.slug}.html`,
+      url: `/${post.slug}`,
       title: post.title,
       text: post.summary || post.content_markdown?.slice(0, 220) || "",
     }));

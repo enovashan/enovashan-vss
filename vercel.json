@@ -1,5 +1,17 @@
 {
   "cleanUrls": true,
+  "redirects": [
+    {
+      "source": "/about-recovered-raw.html",
+      "destination": "/about",
+      "permanent": true
+    },
+    {
+      "source": "/about-recovered-raw",
+      "destination": "/about",
+      "permanent": true
+    }
+  ],
   "rewrites": [
     { "source": "/cms", "destination": "/cms/index.html" },
     { "source": "/cms/", "destination": "/cms/index.html" }

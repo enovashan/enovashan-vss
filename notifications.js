@@ -41,7 +41,7 @@
 
       list.innerHTML = recent
         .map((p) => {
-          const href = p.target_page === "index" ? "index.html" : `${p.slug}.html`;
+          const href = p.target_page === "index" ? "/" : `/${p.slug}`;
           return `<li><a href="${href}"><span class="notif-item-title">${escapeHtml(p.title)}</span><span class="notif-item-summary">${escapeHtml(p.summary || "")}</span></a></li>`;
         })
         .join("") || '<li class="notif-empty">No new updates this week.</li>';

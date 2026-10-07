@@ -110,7 +110,7 @@ def extract_posts():
 def render_story_cards(posts):
     cards = []
     for index, post in enumerate(posts[:12], start=1):
-        page_path = f"blog/{post['slug']}.html"
+        page_path = f"/blog/{post['slug']}"
         cards.append(
             f'''
             <article class="story-card">
@@ -141,27 +141,27 @@ def render_story_page(posts):
   <body>
     <div class="page-shell page-shell--subpage">
       <header class="topbar">
-        <a class="brand" href="index.html" aria-label="Enovashan home">
+        <a class="brand" href="/" aria-label="Enovashan home">
           <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 58 58" focusable="false"><path class="brand-mark__frame" d="M15 49V11h29v17"/><path class="brand-mark__n" d="M22 43V22l16 18V22"/><circle class="brand-mark__signal" cx="45" cy="12" r="4"/></svg></div>
           <div class="brand-name">Enovashan</div>
         </a>
 
         <nav class="main-nav" aria-label="Main navigation">
-          <a href="index.html">Home</a>
-          <a href="stories.html">Stories</a>
-          <a href="books.html">Book notes</a>
-          <a href="watch.html">Watch</a>
-          <a href="books.html">Learn</a>
-          <a href="recipes.html">Recipes</a>
-          <a href="shop.html">Shop</a>
-          <a href="about.html">About</a>
+          <a href="/">Home</a>
+          <a href="/stories">Stories</a>
+          <a href="/books">Book notes</a>
+          <a href="/watch">Watch</a>
+          <a href="/books">Learn</a>
+          <a href="/recipes">Recipes</a>
+          <a href="/shop">Shop</a>
+          <a href="/about">About</a>
         </nav>
 
         <div class="toolbar">
-          <a href="stories.html" class="icon-button" aria-label="Search stories">
+          <a href="/stories" class="icon-button" aria-label="Search stories">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 4a6.5 6.5 0 015.12 11.12l4.38 4.38 1.41-1.41-4.38-4.38A6.5 6.5 0 1110.5 4zm0 2a4.5 4.5 0 100 9 4.5 4.5 0 000-9z"/></svg>
           </a>
-          <a href="cart.html" class="icon-button cart-link" aria-label="Cart">
+          <a href="/cart" class="icon-button cart-link" aria-label="Cart">
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7V6a5 5 0 0110 0v1h2.5l-1.1 11.1A2 2 0 0116.4 20H7.6a2 2 0 01-1.99-1.9L4.5 7H7zm2 0h6V6a3 3 0 10-6 0v1z"/></svg>
           </a>
         </div>
@@ -191,7 +191,7 @@ def render_story_page(posts):
           <div class="eyebrow">Editor’s note</div>
           <h2>Keep this tab open.</h2>
           <p>New stories arrive when they have earned their way here. No filler, no frantic publishing calendar.</p>
-          <a href="newsletter.html" class="primary-link">Get the signal <span>→</span></a>
+          <a href="/newsletter" class="primary-link">Get the signal <span>→</span></a>
         </aside>
       </main>
 
@@ -202,19 +202,19 @@ def render_story_page(posts):
           </div>
 
           <nav class="footer-nav" aria-label="Footer navigation">
-            <a href="stories.html">Stories</a>
-            <a href="books.html">Book notes</a>
-            <a href="watch.html">Watch</a>
-            <a href="recipes.html">Recipes</a>
-            <a href="about.html">About</a>
-            <a href="contact.html">Contact</a>
+            <a href="/stories">Stories</a>
+            <a href="/books">Book notes</a>
+            <a href="/watch">Watch</a>
+            <a href="/recipes">Recipes</a>
+            <a href="/about">About</a>
+            <a href="/contact">Contact</a>
           </nav>
 
           <div class="footer-languages">
             <div class="small-label">Languages / three doors in</div>
-            <p class="footer-lang-links"><a href="index.html#english-series-card">English</a>, <a href="index.html#urdu-series-card">اردو</a>, <a href="index.html#arabic-series-card">العربية</a>.</p>
+            <p class="footer-lang-links"><a href="/#english-series-card">English</a>, <a href="/#urdu-series-card">اردو</a>, <a href="/#arabic-series-card">العربية</a>.</p>
             <p>Same curiosity. Different cadence.</p>
-            <a href="newsletter.html" class="primary-link footer-link">Join the dispatch <span>→</span></a>
+            <a href="/newsletter" class="primary-link footer-link">Join the dispatch <span>→</span></a>
           </div>
         </div>
 
@@ -265,18 +265,18 @@ def render_post_page(post):
   <body>
     <div class="page-shell page-shell--subpage">
       <header class="topbar">
-        <a class="brand" href="../index.html" aria-label="Enovashan home">
+        <a class="brand" href="/" aria-label="Enovashan home">
           <div class="brand-mark" aria-hidden="true"><svg viewBox="0 0 58 58" focusable="false"><path class="brand-mark__frame" d="M15 49V11h29v17"/><path class="brand-mark__n" d="M22 43V22l16 18V22"/><circle class="brand-mark__signal" cx="45" cy="12" r="4"/></svg></div>
           <div class="brand-name">Enovashan</div>
         </a>
         <nav class="main-nav" aria-label="Main navigation">
-          <a href="../index.html">Home</a>
-          <a href="../stories.html">Stories</a>
-          <a href="../books.html">Book notes</a>
-          <a href="../watch.html">Watch</a>
-          <a href="../recipes.html">Recipes</a>
-          <a href="../shop.html">Shop</a>
-          <a href="../about.html">About</a>
+          <a href="/">Home</a>
+          <a href="/stories">Stories</a>
+          <a href="/books">Book notes</a>
+          <a href="/watch">Watch</a>
+          <a href="/recipes">Recipes</a>
+          <a href="/shop">Shop</a>
+          <a href="/about">About</a>
         </nav>
       </header>
 
@@ -289,7 +289,7 @@ def render_post_page(post):
 
         <article class="editor-note" style="max-width: 780px;">
           {content}
-          <p style="margin-top: 2rem;"><a href="../stories.html" class="primary-link">Back to stories <span>→</span></a></p>
+          <p style="margin-top: 2rem;"><a href="/stories" class="primary-link">Back to stories <span>→</span></a></p>
         </article>
         {comments}
       </main>

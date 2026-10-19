@@ -164,3 +164,10 @@ create index if not exists posts_slug_idx
 alter table public.posts enable row level security;
 revoke all on public.posts from anon, authenticated;
 grant all on public.posts to service_role;
+
+-- Run these statements for existing CMS installations before deploying thumbnail support.
+-- The authenticated CMS upload endpoint creates the public article-thumbnails storage
+-- bucket on first upload, restricted to WebP images no larger than 300 KB.
+alter table public.posts
+  add column if not exists thumbnail_url text not null default '',
+  add column if not exists thumbnail_alt text not null default '';

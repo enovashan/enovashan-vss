@@ -1350,6 +1350,25 @@ main {
   background: linear-gradient(180deg, rgba(195, 217, 121, 0.15), rgba(255,255,255,0.06));
 }
 
+.article-thumbnail-link {
+  display: block;
+  flex-shrink: 0;
+}
+
+.article-thumbnail,
+.article-cover {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 16 / 9;
+  object-fit: cover;
+  border-radius: 0.5rem;
+}
+
+.article-cover {
+  margin-bottom: 1.5rem;
+}
+
 .story-badge {
   font-size: 0.74rem;
   letter-spacing: 0.15em;

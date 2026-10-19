@@ -100,7 +100,7 @@ function getTargetPageLabel(key) {
 
 // Builds the complete standalone static HTML page for an article (server-side port of the CMS composer logic)
 function buildFullStaticHtml(post) {
-  const { slug, title, summary, category, read_time, language, content_html, published_at, target_page } = post;
+  const { slug, title, summary, category, read_time, language, content_html, published_at, target_page, thumbnail_url, thumbnail_alt } = post;
   const isRtl = language === "ur" || language === "ar";
   const langAttr = isRtl ? `lang="${language}" dir="rtl"` : 'lang="en"';
   const dateStr = published_at
@@ -119,6 +119,7 @@ function buildFullStaticHtml(post) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)} — Enovashan</title>
     <meta name="description" content="${escapeHtml(summary || title)}" />
+    ${thumbnail_url ? `<meta property="og:image" content="${escapeHtml(thumbnail_url)}" />` : ""}
     <link rel="canonical" href="https://www.enovashan.com/${escapeHtml(slug)}" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -170,6 +171,7 @@ function buildFullStaticHtml(post) {
         </section>
 
         <article class="${articleClass}" ${isRtl ? 'dir="rtl"' : ""}>
+          ${thumbnail_url ? `<img class="article-cover" src="${escapeHtml(thumbnail_url)}" alt="${escapeHtml(thumbnail_alt || "")}" width="1200" height="675" decoding="async" />` : ""}
           <div class="archive-article__meta">${metaText}</div>
           <div class="archive-article__body">
 ${content_html}
@@ -205,9 +207,13 @@ ${content_html}
 function buildCardSnippet(post, { home = false } = {}) {
   const { slug, title, summary, category, read_time, language, target_page } = post;
   const isRtl = language === "ur" || language === "ar";
+  const thumbnail = post.thumbnail_url
+    ? `<a class="article-thumbnail-link" href="/${escapeHtml(slug)}" tabindex="-1" aria-hidden="true"><img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.thumbnail_alt || "")}" width="1200" height="675" loading="lazy" decoding="async" /></a>`
+    : "";
 
   if (home || target_page === "index") {
     return `<article class="archive-teaser" lang="${escapeHtml(language || "en")}"${isRtl ? ' dir="rtl"' : ""}>
+  ${thumbnail}
   <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "")}</span></div>
   <h3>${escapeHtml(title)}</h3>
   <p>${escapeHtml(summary || "")}</p>
@@ -216,6 +222,7 @@ function buildCardSnippet(post, { home = false } = {}) {
   }
 
   return `<article class="story-card" ${isRtl ? 'dir="rtl"' : ""}>
+  ${thumbnail}
   <div class="story-badge">&bull;</div>
   <div class="story-meta"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "Read")}</span></div>
   <h3><a href="/${escapeHtml(slug)}">${escapeHtml(title)}</a></h3>
@@ -266,7 +273,7 @@ async function getLatestPublishedPosts() {
   if (!url || !secretKey) {
     throw new Error("Supabase configuration missing for latest homepage posts.");
   }
-  const res = await fetch(`${url}/rest/v1/posts?select=slug,title,summary,category,read_time,language&status=eq.published&order=published_at.desc,slug.asc&limit=3`, {
+  const res = await fetch(`${url}/rest/v1/posts?select=slug,title,summary,category,read_time,language,thumbnail_url,thumbnail_alt&status=eq.published&order=published_at.desc,slug.asc&limit=3`, {
     headers: {
       apikey: secretKey,
       ...(secretKey.startsWith("eyJ") ? { authorization: "Bearer " + secretKey } : {}),

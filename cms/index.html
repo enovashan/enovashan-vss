@@ -968,6 +968,18 @@
             <label for="postSummary">Excerpt / Summary (for listing card & subscriber email)</label>
             <textarea id="postSummary" rows="2" placeholder="Brief 1-2 sentence description..." oninput="updateLivePreview()"></textarea>
           </div>
+          <div class="cms-form-group" style="margin-top: 1rem;">
+            <label for="postThumbnail">Article thumbnail (optional)</label>
+            <input id="postThumbnail" type="file" accept="image/jpeg,image/png,image/webp" onchange="uploadThumbnail(this)" aria-describedby="thumbnailHelp thumbnailStatus" />
+            <p id="thumbnailHelp" style="font-size: 0.85rem; color: var(--muted);">Choose a JPEG, PNG, or WebP up to 10 MB. We center-crop to 16:9 and compress to a 1200 &times; 675 WebP under 300 KB. Shown on article cards and above the article.</p>
+            <p id="thumbnailStatus" role="status" aria-live="polite"></p>
+            <div id="thumbnailDetails" hidden>
+              <img id="thumbnailPreview" class="article-thumbnail" alt="" width="1200" height="675" style="max-width: 320px; margin-bottom: 0.75rem;" />
+              <label for="postThumbnailAlt">Image description (for accessibility)</label>
+              <input id="postThumbnailAlt" type="text" maxlength="300" placeholder="Briefly describe what the image shows" oninput="updateLivePreview()" />
+              <button id="removeThumbnailBtn" type="button" class="cms-btn-secondary" style="margin-top: 0.5rem;" onclick="removeThumbnail()">Remove thumbnail</button>
+            </div>
+          </div>
         </div>
 
         <!-- Editor & Preview Grid -->
@@ -1006,6 +1018,7 @@
                 <p id="previewSummary">Your article excerpt and summary will appear here.</p>
               </section>
               <article class="archive-article" id="previewArticleWrapper">
+                <img id="previewCover" class="article-cover" alt="" width="1200" height="675" style="display: none;" />
                 <div class="archive-article__meta" id="previewArticleMeta">CATEGORY · TODAY</div>
                 <div class="archive-article__body" id="previewRenderedBody">
                   <p>Start drafting on the left to see your formatted article appear in real time.</p>
@@ -1180,6 +1193,8 @@
       let activeFilter = "all";
       let currentEditingPost = null;
       let currentEditingSuggestionId = null;
+      let thumbnailUrl = "";
+      let isUploadingThumbnail = false;
 
       // Initialize on load
       window.addEventListener("DOMContentLoaded", async () => {
@@ -1292,6 +1307,10 @@
       }
 
       function switchMainView(view) {
+        if (isUploadingThumbnail) {
+          showAlert("Please wait for the thumbnail upload to finish.", "info");
+          return;
+        }
         const tabArticles = document.getElementById("tabArticlesBtn");
         const tabEditor = document.getElementById("tabEditorBtn");
         const tabSuggestions = document.getElementById("tabSuggestionsBtn");
@@ -1533,6 +1552,7 @@
             return `
               <div class="cms-post-card">
                 <div style="flex: 1;">
+                  ${post.thumbnail_url ? `<img class="article-thumbnail" src="${escapeHtml(post.thumbnail_url)}" alt="${escapeHtml(post.thumbnail_alt || "")}" width="1200" height="675" loading="lazy" style="max-width: 180px; margin-bottom: 0.75rem;" />` : ""}
                   <div class="cms-post-meta-row">
                     <span class="cms-post-badge ${post.status === "published" ? "cms-badge-published" : "cms-badge-draft"}">
                       ${post.status}
@@ -1575,6 +1595,7 @@
 
       // --- EDITOR & COMPOSER ---
       function startNewArticle() {
+        if (isUploadingThumbnail) return showAlert("Please wait for the thumbnail upload to finish.", "info");
         currentEditingPost = null;
         userSetLanguage = false;
         document.getElementById("postTitle").value = "";
@@ -1585,6 +1606,7 @@
         document.getElementById("postLanguage").value = "en";
         document.getElementById("postStatus").value = "published";
         document.getElementById("postSummary").value = "";
+        setThumbnail("", "");
         document.getElementById("markdownInput").value = "";
         document.getElementById("slugPreviewText").textContent = "my-post";
         document.getElementById("postPublishedDateDisplay").textContent = new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -1593,6 +1615,7 @@
       }
 
       function editPost(slug) {
+        if (isUploadingThumbnail) return showAlert("Please wait for the thumbnail upload to finish.", "info");
         const post = allPosts.find((p) => p.slug === slug);
         if (!post) return;
         currentEditingPost = post;
@@ -1605,6 +1628,7 @@
         document.getElementById("postLanguage").value = post.language || "en";
         document.getElementById("postStatus").value = post.status || "published";
         document.getElementById("postSummary").value = post.summary || "";
+        setThumbnail(post.thumbnail_url || "", post.thumbnail_alt || "");
         document.getElementById("markdownInput").value = post.content_markdown || "";
         document.getElementById("slugPreviewText").textContent = post.slug;
         document.getElementById("postPublishedDateDisplay").textContent = new Date(post.published_at || post.created_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
@@ -1931,6 +1955,83 @@
           .join("\n");
       }
 
+      function setThumbnail(url, alt) {
+        thumbnailUrl = url;
+        document.getElementById("postThumbnail").value = "";
+        document.getElementById("postThumbnailAlt").value = alt;
+        document.getElementById("thumbnailDetails").hidden = !url;
+        const preview = document.getElementById("thumbnailPreview");
+        if (url) preview.src = url;
+        else preview.removeAttribute("src");
+        document.getElementById("thumbnailStatus").textContent = "";
+      }
+
+      function removeThumbnail() {
+        if (isUploadingThumbnail) return;
+        setThumbnail("", "");
+        updateLivePreview();
+      }
+
+      async function compressThumbnail(file) {
+        if (!["image/jpeg", "image/png", "image/webp"].includes(file.type) || file.size > 10 * 1024 * 1024) {
+          throw new Error("Choose a JPEG, PNG, or WebP image no larger than 10 MB.");
+        }
+        const bitmap = await createImageBitmap(file);
+        try {
+          const canvas = document.createElement("canvas");
+          canvas.width = 1200;
+          canvas.height = 675;
+          const context = canvas.getContext("2d");
+          if (!context) throw new Error("Your browser cannot prepare this image.");
+          const scale = Math.max(1200 / bitmap.width, 675 / bitmap.height);
+          context.drawImage(bitmap, (1200 - bitmap.width * scale) / 2, (675 - bitmap.height * scale) / 2, bitmap.width * scale, bitmap.height * scale);
+          for (const quality of [0.84, 0.74, 0.64, 0.54, 0.44, 0.34, 0.24]) {
+            const blob = await new Promise((resolve) => canvas.toBlob(resolve, "image/webp", quality));
+            if (!blob || blob.type !== "image/webp") throw new Error("Your browser does not support WebP compression. Please use a current browser.");
+            if (blob.size <= 300 * 1024) return blob;
+          }
+          throw new Error("This image cannot be compressed below 300 KB. Please choose a simpler image.");
+        } finally {
+          bitmap.close();
+        }
+      }
+
+      async function uploadThumbnail(input) {
+        const file = input.files[0];
+        if (!file || isUploadingThumbnail) return;
+        isUploadingThumbnail = true;
+        input.disabled = true;
+        document.getElementById("removeThumbnailBtn").disabled = true;
+        document.getElementById("thumbnailStatus").textContent = "Preparing and uploading thumbnail...";
+        try {
+          const blob = await compressThumbnail(file);
+          const dataUrl = await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = () => reject(new Error("Could not read the image."));
+            reader.readAsDataURL(blob);
+          });
+          const res = await fetch("/api/cms-images", {
+            method: "POST",
+            headers: { "content-type": "application/json", Authorization: `Bearer ${currentSessionToken}` },
+            body: JSON.stringify({ image: dataUrl.split(",")[1] }),
+          });
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Thumbnail upload failed.");
+          setThumbnail(data.url, document.getElementById("postThumbnailAlt").value);
+          document.getElementById("thumbnailStatus").textContent = `Uploaded ${Math.ceil(data.bytes / 1024)} KB WebP. Save the article to keep this thumbnail.`;
+          updateLivePreview();
+        } catch (error) {
+          document.getElementById("thumbnailStatus").textContent = error.message || "Could not prepare the image.";
+          showAlert(error.message || "Could not prepare the image.", "danger", 8000);
+        } finally {
+          isUploadingThumbnail = false;
+          input.disabled = false;
+          input.value = "";
+          document.getElementById("removeThumbnailBtn").disabled = false;
+        }
+      }
+
       function updateLivePreview() {
         const title = document.getElementById("postTitle").value.trim() || "Your Article Title";
         const category = document.getElementById("postCategory").value.trim() || "EDITORIAL";
@@ -1944,10 +2045,16 @@
         document.getElementById("previewSummary").textContent = summary || "Your article excerpt and summary will appear here.";
         document.getElementById("previewArticleMeta").textContent = `${category} · ${new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })}`;
         document.getElementById("previewRenderedBody").innerHTML = html || "<p>Start drafting on the left to see your formatted article appear in real time.</p>";
+        const cover = document.getElementById("previewCover");
+        cover.style.display = thumbnailUrl ? "block" : "none";
+        if (thumbnailUrl) cover.src = thumbnailUrl;
+        else cover.removeAttribute("src");
+        cover.alt = document.getElementById("postThumbnailAlt").value.trim();
       }
 
       // --- SAVING ---
       async function savePost(statusOverride) {
+        if (isUploadingThumbnail) return showAlert("Please wait for the thumbnail upload to finish.", "info");
         const title = document.getElementById("postTitle").value.trim();
         const rawSlug = document.getElementById("postSlug").value.trim() || slugify(title);
         const slug = slugify(rawSlug);
@@ -1980,6 +2087,8 @@
           summary,
           content_markdown,
           content_html,
+          thumbnail_url: thumbnailUrl,
+          thumbnail_alt: document.getElementById("postThumbnailAlt").value.trim(),
           category,
           read_time,
           target_page,
@@ -2079,7 +2188,7 @@
       }
 
       // --- STATIC HTML GENERATOR ---
-      function buildFullStaticHtml({ slug, title, summary, category, read_time, language, content_html, published_at }) {
+      function buildFullStaticHtml({ slug, title, summary, category, read_time, language, content_html, published_at, thumbnail_url, thumbnail_alt }) {
         const isRtl = language === "ur" || language === "ar";
         const langAttr = isRtl ? `lang="${language}" dir="rtl"` : 'lang="en"';
         const dateStr = published_at ? new Date(published_at).toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" }) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
@@ -2097,6 +2206,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>${escapeHtml(title)} — Enovashan</title>
     <meta name="description" content="${escapeHtml(summary || title)}" />
+    ${thumbnail_url ? `<meta property="og:image" content="${escapeHtml(thumbnail_url)}" />` : ""}
     <link rel="canonical" href="https://www.enovashan.com/${escapeHtml(slug)}" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -2148,6 +2258,7 @@
         </section>
 
         <article class="${articleClass}" ${isRtl ? 'dir="rtl"' : ""}>
+          ${thumbnail_url ? `<img class="article-cover" src="${escapeHtml(thumbnail_url)}" alt="${escapeHtml(thumbnail_alt || "")}" width="1200" height="675" decoding="async" />` : ""}
           <div class="archive-article__meta">${metaText}</div>
           <div class="archive-article__body">
 ${content_html}
@@ -2179,8 +2290,11 @@ ${content_html}
 </html>`;
       }
 
-      function buildCardSnippet({ slug, title, summary, category, read_time, target_page, language, published_at }) {
+      function buildCardSnippet({ slug, title, summary, category, read_time, target_page, language, published_at, thumbnail_url, thumbnail_alt }) {
         const isRtl = language === "ur" || language === "ar";
+        const thumbnail = thumbnail_url
+          ? `<a class="article-thumbnail-link" href="/${escapeHtml(slug)}" tabindex="-1" aria-hidden="true"><img class="article-thumbnail" src="${escapeHtml(thumbnail_url)}" alt="${escapeHtml(thumbnail_alt || "")}" width="1200" height="675" loading="lazy" decoding="async" /></a>`
+          : "";
         const dateStr = published_at ? new Date(published_at).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" }) : new Date().toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" });
 
         let snippets = [];
@@ -2189,6 +2303,7 @@ ${content_html}
         if (target_page === "index") {
           snippets.push(`<!-- Place in index.html inside <div class="archive-teaser-grid"> -->
 <article class="archive-teaser">
+  ${thumbnail}
   <div class="meta-row"><span>${escapeHtml(category || "Notes")}</span><span>${dateStr}</span></div>
   <h3>${escapeHtml(title)}</h3>
   <p>${escapeHtml(summary || "")}</p>
@@ -2197,6 +2312,7 @@ ${content_html}
         } else {
           snippets.push(`<!-- Place in ${getTargetPageFilename(target_page)} inside <div class="story-list"> -->
 <article class="story-card" ${isRtl ? 'dir="rtl"' : ""}>
+  ${thumbnail}
   <div class="story-badge">&bull;</div>
   <div class="story-meta"><span>${escapeHtml(category || "Notes")}</span><span>${escapeHtml(read_time || "Read")}</span></div>
   <h3><a href="/${escapeHtml(slug)}">${escapeHtml(title)}</a></h3>
@@ -2224,6 +2340,7 @@ ${content_html}
       let activeExportSlug = "";
 
       function openStaticHtmlModal() {
+        if (isUploadingThumbnail) return showAlert("Please wait for the thumbnail upload to finish.", "info");
         const title = document.getElementById("postTitle").value.trim() || "Untitled";
         const rawSlug = document.getElementById("postSlug").value.trim() || slugify(title);
         const slug = slugify(rawSlug);
@@ -2243,6 +2360,8 @@ ${content_html}
           target_page,
           language,
           content_html,
+          thumbnail_url: thumbnailUrl,
+          thumbnail_alt: document.getElementById("postThumbnailAlt").value.trim(),
           published_at: currentEditingPost?.published_at || new Date().toISOString(),
         };
 

@@ -1,56 +1,11 @@
 const { unpublishPostFromGitHub } = require("./_github-publish");
+const { isThumbnailUrl } = require("./_cms-images");
+const { getSupabaseConfig, verifyAdminUser } = require("./_cms-auth");
 
 function jsonResponse(response, status, value) {
   response.setHeader("cache-control", "no-store");
   response.setHeader("x-content-type-options", "nosniff");
   return response.status(status).json(value);
-}
-
-function getSupabaseConfig() {
-  const url = process.env.SUPABASE_URL?.replace(/\/$/, "");
-  const secretKey = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
-  if (!url || !secretKey) return null;
-  return {
-    url,
-    secretKey,
-    isLegacyJwt: secretKey.startsWith("eyJ"),
-  };
-}
-
-function getAllowedAdminEmail() {
-  return (process.env.ADMIN_EMAIL || process.env.COMMENT_NOTIFY_EMAIL || "enovashan@gmail.com").toLowerCase().trim();
-}
-
-async function verifyAdminUser(request, config) {
-  const authHeader = request.headers.authorization;
-  if (!authHeader || !authHeader.startsWith("Bearer ")) {
-    return { ok: false, status: 401, error: "Missing or invalid authorization header." };
-  }
-
-  const token = authHeader.slice(7).trim();
-  const allowedAdmin = getAllowedAdminEmail();
-
-  try {
-    const userRes = await fetch(`${config.url}/auth/v1/user`, {
-      headers: {
-        apikey: config.secretKey,
-        authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!userRes.ok) {
-      return { ok: false, status: 401, error: "Session expired or invalid." };
-    }
-
-    const user = await userRes.json();
-    if (!user?.email || user.email.toLowerCase().trim() !== allowedAdmin) {
-      return { ok: false, status: 403, error: "Access denied. Only the administrator account is authorized." };
-    }
-
-    return { ok: true, user };
-  } catch (error) {
-    return { ok: false, status: 500, error: error.message || "Failed to verify admin identity." };
-  }
 }
 
 async function supabaseRequest(config, path, options = {}) {
@@ -122,6 +77,8 @@ module.exports = async function handler(request, response) {
       language = "en",
       status = "published",
       featured_on_home = false,
+      thumbnail_url,
+      thumbnail_alt,
       published_at,
     } = input || {};
 
@@ -132,6 +89,12 @@ module.exports = async function handler(request, response) {
     }
     if (!title || !title.trim()) {
       return jsonResponse(response, 400, { error: "Post title is required." });
+    }
+    if (thumbnail_url !== undefined && !isThumbnailUrl(thumbnail_url, config.url)) {
+      return jsonResponse(response, 400, { error: "Please upload a thumbnail using the CMS image picker." });
+    }
+    if (thumbnail_alt !== undefined && (typeof thumbnail_alt !== "string" || thumbnail_alt.length > 300)) {
+      return jsonResponse(response, 400, { error: "Image description must be text of at most 300 characters." });
     }
 
     const payload = {
@@ -146,6 +109,8 @@ module.exports = async function handler(request, response) {
       language: ["en", "ur", "ar"].includes(language) ? language : "en",
       status: status === "draft" ? "draft" : "published",
       featured_on_home: Boolean(featured_on_home),
+      ...(thumbnail_url !== undefined ? { thumbnail_url } : {}),
+      ...(thumbnail_alt !== undefined ? { thumbnail_alt: thumbnail_alt.trim() } : {}),
       published_at: published_at || new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };

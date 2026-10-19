@@ -208,6 +208,39 @@ test("CMS preview, removal, exports, RTL and no-image fallbacks stay consistent"
   assert.equal(getElementById("previewCover").src, undefined);
 });
 
+test("thumbnail resizing preserves every edge of wide and portrait images", async () => {
+  for (const [width, height, expected] of [
+    [1600, 900, [0, 0, 1200, 675]],
+    [1800, 900, [0, 37.5, 1200, 600]],
+    [900, 1800, [431.25, 0, 337.5, 675]],
+  ]) {
+    const { context } = composer();
+    let drawn;
+    let background;
+    let closed = false;
+    const bitmap = { width, height, close() { closed = true; } };
+    context.createImageBitmap = async () => bitmap;
+    context.document.createElement = () => ({
+      getContext() {
+        return {
+          fillRect(...args) { background = args; },
+          drawImage(image, ...args) {
+            assert.equal(image, bitmap);
+            drawn = args;
+          },
+        };
+      },
+      toBlob(callback, type) { callback({ size: 1000, type }); },
+    });
+    const result = await vm.runInContext('compressThumbnail({type: "image/png", size: 1000})', context);
+    assert.deepEqual(background, [0, 0, 1200, 675]);
+    assert.deepEqual(drawn, expected);
+    assert.equal(closed, true);
+    assert.equal(result.type, "image/webp");
+    assert.ok(result.size <= MAX_IMAGE_BYTES);
+  }
+});
+
 test("server publishing renders images on articles and homepage/directory cards", async () => {
   const source = fs.readFileSync(path.join(__dirname, "..", "api", "_github-publish.js"), "utf8");
   const context = vm.createContext({ module: { exports: {} }, process, Buffer, console });

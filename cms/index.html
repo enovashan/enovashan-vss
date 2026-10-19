@@ -32,6 +32,7 @@
 
       /* Topbar adjustments for CMS */
       .cms-topbar {
+        flex-wrap: wrap;
         position: sticky;
         top: 0;
         z-index: 50;
@@ -64,6 +65,7 @@
       }
 
       .cms-nav-tabs {
+        flex-wrap: wrap;
         display: flex;
         align-items: center;
         gap: 0.5rem;
@@ -782,6 +784,24 @@
           width: auto;
         }
       }
+      .cms-subscriber-table {
+        width: 100%;
+        border-collapse: collapse;
+        background: var(--cms-card);
+      }
+
+      .cms-subscriber-table th,
+      .cms-subscriber-table td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid var(--cms-border);
+        text-align: left;
+        overflow-wrap: anywhere;
+      }
+
+      .cms-subscriber-table th {
+        font-size: 0.8rem;
+        color: var(--muted);
+      }
     </style>
   </head>
   <body>
@@ -805,6 +825,7 @@
         <button class="cms-tab-btn active" id="tabArticlesBtn" onclick="switchMainView('articles')">Articles</button>
         <button class="cms-tab-btn" id="tabEditorBtn" onclick="switchMainView('editor')">+ New Article</button>
         <button class="cms-tab-btn" id="tabSuggestionsBtn" onclick="switchMainView('suggestions')">Topic Ideas</button>
+        <button class="cms-tab-btn" id="tabSubscribersBtn" onclick="switchMainView('subscribers')" title="View active newsletter subscribers">Subscribers (<span id="subscriberCount" aria-live="polite">Loading...</span>)</button>
       </nav>
 
       <div class="cms-user-pill" id="cmsUserPill" style="display: none;">
@@ -899,6 +920,26 @@
             <h3>Loading suggestions…</h3>
             <p style="color: var(--muted);">Connecting to Supabase</p>
           </div>
+        </div>
+      </section>
+
+      <section id="subscribersSection" style="display: none;" aria-labelledby="subscribersHeading">
+        <div class="cms-posts-header">
+          <div>
+            <h2 id="subscribersHeading">Subscribers</h2>
+            <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">Active, confirmed newsletter subscribers, newest subscriptions first. Unsubscribed addresses are excluded. Dates are shown in your local time.</p>
+          </div>
+          <button id="refreshSubscribersBtn" class="cms-btn-secondary" onclick="loadSubscribers(1)">Refresh</button>
+        </div>
+        <p id="subscribersStatus" role="status" aria-live="polite"></p>
+        <table class="cms-subscriber-table">
+          <thead><tr><th scope="col">Email address</th><th scope="col">Subscription date</th></tr></thead>
+          <tbody id="subscribersList"></tbody>
+        </table>
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: 1rem;">
+          <button id="subscribersPreviousBtn" class="cms-btn-secondary" onclick="loadSubscribers(subscriberPage - 1)" disabled>Previous</button>
+          <span id="subscribersPageLabel"></span>
+          <button id="subscribersNextBtn" class="cms-btn-secondary" onclick="loadSubscribers(subscriberPage + 1)" disabled>Next</button>
         </div>
       </section>
 
@@ -1195,6 +1236,8 @@
       let currentEditingSuggestionId = null;
       let thumbnailUrl = "";
       let isUploadingThumbnail = false;
+      let subscriberPage = 1;
+      let subscribersLoading = false;
 
       // Initialize on load
       window.addEventListener("DOMContentLoaded", async () => {
@@ -1294,6 +1337,9 @@
         document.getElementById("articlesSection").style.display = "none";
         document.getElementById("editorSection").style.display = "none";
         document.getElementById("suggestionsSection").style.display = "none";
+        document.getElementById("subscribersSection").style.display = "none";
+        document.getElementById("subscribersList").innerHTML = "";
+        document.getElementById("subscriberCount").textContent = "Loading...";
         document.getElementById("cmsNavTabs").style.display = "none";
         document.getElementById("cmsUserPill").style.display = "none";
       }
@@ -1304,6 +1350,7 @@
         document.getElementById("cmsUserPill").style.display = "flex";
         document.getElementById("currentUserDisplay").textContent = currentUser?.email || "Admin";
         switchMainView("articles");
+        loadSubscriberCount();
       }
 
       function switchMainView(view) {
@@ -1317,9 +1364,11 @@
         const secArticles = document.getElementById("articlesSection");
         const secEditor = document.getElementById("editorSection");
         const secSuggestions = document.getElementById("suggestionsSection");
+        const tabSubscribers = document.getElementById("tabSubscribersBtn");
+        const secSubscribers = document.getElementById("subscribersSection");
 
-        [tabArticles, tabEditor, tabSuggestions].forEach((tab) => tab.classList.remove("active"));
-        [secArticles, secEditor, secSuggestions].forEach((section) => section.style.display = "none");
+        [tabArticles, tabEditor, tabSuggestions, tabSubscribers].forEach((tab) => tab.classList.remove("active"));
+        [secArticles, secEditor, secSuggestions, secSubscribers].forEach((section) => section.style.display = "none");
 
         if (view === "articles") {
           tabArticles.classList.add("active");
@@ -1328,10 +1377,82 @@
           tabSuggestions.classList.add("active");
           secSuggestions.style.display = "block";
           loadSuggestions();
+        } else if (view === "subscribers") {
+          tabSubscribers.classList.add("active");
+          secSubscribers.style.display = "block";
+          loadSubscribers(1);
         } else {
           tabEditor.classList.add("active");
           secEditor.style.display = "block";
           updateLivePreview();
+        }
+      }
+
+      async function fetchSubscribers(query) {
+        const res = await fetch(`/api/cms-subscribers?${query}`, {
+          headers: { Authorization: `Bearer ${currentSessionToken}` },
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || "Could not load subscribers.");
+        if (!Number.isSafeInteger(data.total) || data.total < 0 || !Array.isArray(data.subscribers)) {
+          throw new Error("The subscriber service returned an invalid response.");
+        }
+        return data;
+      }
+
+      async function loadSubscriberCount() {
+        const token = currentSessionToken;
+        try {
+          const data = await fetchSubscribers("summary=true");
+          if (token !== currentSessionToken) return;
+          document.getElementById("subscriberCount").textContent = data.total.toLocaleString();
+        } catch (error) {
+          if (token !== currentSessionToken) return;
+          document.getElementById("subscriberCount").textContent = "Unavailable";
+          showAlert(error.message, "danger", 8000);
+        }
+      }
+
+      async function loadSubscribers(page = 1) {
+        if (subscribersLoading) return;
+        subscribersLoading = true;
+        const token = currentSessionToken;
+        const status = document.getElementById("subscribersStatus");
+        const previous = document.getElementById("subscribersPreviousBtn");
+        const next = document.getElementById("subscribersNextBtn");
+        const refresh = document.getElementById("refreshSubscribersBtn");
+        const list = document.getElementById("subscribersList");
+        previous.disabled = next.disabled = refresh.disabled = true;
+        status.textContent = "Loading subscribers...";
+        list.innerHTML = "";
+        document.getElementById("subscribersPageLabel").textContent = "";
+        try {
+          let data = await fetchSubscribers(`page=${page}`);
+          if (token !== currentSessionToken) return;
+          const lastPage = Math.max(1, Math.ceil(data.total / data.pageSize));
+          if (page > lastPage) {
+            page = lastPage;
+            data = await fetchSubscribers(`page=${page}`);
+            if (token !== currentSessionToken) return;
+          }
+          subscriberPage = page;
+          document.getElementById("subscriberCount").textContent = data.total.toLocaleString();
+          list.innerHTML = data.subscribers.map((subscriber) => {
+            const date = new Date(subscriber.created_at);
+            const formatted = date.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+            return `<tr><td>${escapeHtml(subscriber.email)}</td><td><time datetime="${escapeHtml(subscriber.created_at)}">${escapeHtml(formatted)}</time></td></tr>`;
+          }).join("");
+          status.textContent = data.total ? `${data.total.toLocaleString()} active subscribers` : "No active subscribers yet.";
+          document.getElementById("subscribersPageLabel").textContent = `Page ${page} of ${Math.max(1, Math.ceil(data.total / data.pageSize))}`;
+          previous.disabled = page <= 1;
+          next.disabled = page * data.pageSize >= data.total;
+        } catch (error) {
+          if (token !== currentSessionToken) return;
+          status.textContent = `Could not load subscribers: ${error.message}. Use Refresh to try again.`;
+          showAlert(error.message, "danger", 8000);
+        } finally {
+          subscribersLoading = false;
+          refresh.disabled = false;
         }
       }
 

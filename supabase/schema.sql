@@ -130,6 +130,8 @@ create table if not exists public.subscribers (
 create index if not exists subscribers_confirmed_idx
   on public.subscribers (confirmed) where unsubscribed_at is null;
 
+-- The CMS subscriber count/list uses confirmed, non-unsubscribed rows, matching
+-- campaign recipients, and displays created_at as the subscription date (newest first).
 alter table public.subscribers enable row level security;
 revoke all on public.subscribers from anon, authenticated;
 grant all on public.subscribers to service_role;

@@ -978,6 +978,7 @@
           <p><a href="/local-helper/SETUP.md" target="_blank" class="cms-btn-secondary">Windows &amp; Mac setup guide</a>
             <a href="/local-helper/video-helper.cjs" download="enovashan-video-helper.cjs" class="cms-btn-secondary">Download local helper</a></p>
           <h3>2. Start and pair the helper</h3>
+          <p>Click the <strong>Connect CMS</strong> link printed by the latest helper. It opens this page and pairs automatically after sign-in. Or use the manual code below.</p>
           <div class="cms-form-group">
             <label for="videoPairingCode">Pairing code from the helper terminal</label>
             <input id="videoPairingCode" type="password" maxlength="64" autocomplete="off" spellcheck="false" placeholder="Start the helper, then paste its pairing code" />
@@ -1427,6 +1428,7 @@
         document.getElementById("currentUserDisplay").textContent = currentUser?.email || "Admin";
         switchMainView("articles");
         loadSubscriberCount();
+        document.dispatchEvent(new Event("cms:authenticated"));
       }
 
       function switchMainView(view) {

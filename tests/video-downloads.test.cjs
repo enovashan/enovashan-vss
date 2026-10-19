@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
 
-function interfaceFixture() {
+function interfaceFixture(hash = "", signedIn = false) {
   const elements = new Map();
   const callbacks = new Map();
   const requests = [];
@@ -28,8 +28,16 @@ function interfaceFixture() {
     document: {
       getElementById: get,
       createElement() { return {}; },
-      addEventListener(event, callback) { if (event === "DOMContentLoaded") callback(); },
+      addEventListener(event, callback) {
+        if (event === "DOMContentLoaded") callback();
+        else callbacks.set(`document:${event}`, callback);
+      },
     },
+    URLSearchParams,
+    location: { hash, pathname: "/cms", search: "" },
+    history: { replaceState(state, title, url) { context.location.replacedWith = url; context.location.hash = ""; } },
+    currentUser: signedIn ? { email: "admin@example.com" } : null,
+    switchMainView(view) { get("currentView").textContent = view; },
     AbortSignal, console, setTimeout() { return 1; }, clearTimeout() {}, confirm() { return true; },
     fetch: async (url, options) => {
       requests.push({ url, options });
@@ -107,4 +115,35 @@ test("connection failures are visible rather than presenting a connected state",
   await callbacks.get("videoConnectBtn:click")();
   assert.match(get("videoHelperStatus").textContent, /local-network access/);
   assert.equal(get("videoConnectedControls").hidden, true);
+});
+
+test("Connect CMS fragment is removed immediately and pairs only after CMS authentication", async () => {
+  const token = "b".repeat(64);
+  const { get, context, requests, callbacks } = interfaceFixture(`#video-helper=${token}`);
+  assert.equal(context.location.replacedWith, "/cms");
+  assert.equal(context.location.hash, "");
+  assert.equal(requests.length, 0);
+  await callbacks.get("document:cms:authenticated")();
+  assert.equal(get("currentView").textContent, "video-downloads");
+  assert.equal(get("videoConnectedControls").hidden, false);
+  assert.ok(requests.every(request => request.options.headers.Authorization === `Bearer ${token}`));
+  const count = requests.length;
+  await callbacks.get("document:cms:authenticated")();
+  assert.equal(requests.length, count, "pairing link must be consumed once");
+});
+
+test("signed-in CMS automatically consumes the helper link without a login event", async () => {
+  const { get, requests } = interfaceFixture(`#video-helper=${"c".repeat(64)}`, true);
+  await new Promise(resolve => setImmediate(resolve));
+  assert.equal(get("currentView").textContent, "video-downloads");
+  assert.equal(get("videoConnectedControls").hidden, false);
+  assert.ok(requests.length > 0);
+});
+
+test("invalid helper fragments are stripped and fail explicitly without sending a request", async () => {
+  const { get, context, requests, callbacks } = interfaceFixture("#video-helper=invalid");
+  await callbacks.get("document:cms:authenticated")();
+  assert.equal(context.location.hash, "");
+  assert.equal(requests.length, 0);
+  assert.match(get("videoHelperStatus").textContent, /64-character/);
 });

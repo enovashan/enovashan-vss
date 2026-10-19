@@ -93,8 +93,12 @@ node ~/Downloads/enovashan-video-helper.cjs
 ```
 
 If your browser used another folder or filename, use that actual path.
-The terminal prints a 64-character **pairing code**. Treat it like a temporary
-password: do not share it. It changes on every helper restart.
+The terminal prints a **Connect CMS** link and a manual 64-character **pairing
+code**. Ctrl+click the link on Windows (Command+click on Mac) to open the CMS and
+pair automatically after signing in. If your terminal does not support clicking,
+open that complete link in your browser. Treat the link and code like temporary
+passwords: do not share or bookmark them. They change on every helper restart.
+Download the latest helper if your existing copy only prints a manual code.
 
 The helper listens only on `127.0.0.1:47831`. Do not expose that port through a
 router, tunnel, proxy, or public server. Only the production Enovashan CMS origins
@@ -102,9 +106,10 @@ are allowed to call it, and API requests must include the pairing code.
 
 ## 5. Pair and select the destination
 
-1. Open <https://www.enovashan.com/cms> in current Chrome or Edge and sign in.
-2. Open **Video Downloads** and paste the pairing code.
-3. Click **Connect helper**.
+1. Click the helper's **Connect CMS** link in current Chrome or Edge.
+2. Sign in if prompted. **Video Downloads** opens and connects automatically.
+3. Alternatively, open the CMS manually, select **Video Downloads**, paste the
+   manual code, and click **Connect helper**.
 4. Allow access to the local network if your browser asks. Browser/enterprise
    policies can block this connection; do not disable browser security globally.
 5. Confirm yt-dlp, FFmpeg, and MEGA login all show **Ready**.
@@ -113,7 +118,10 @@ are allowed to call it, and API requests must include the pairing code.
    MEGA, then browse again. This is a cloud-folder picker, not a local disk picker.
 
 No MEGA password, pairing code, Reel queue, or video is stored in Supabase/Vercel.
-The pairing code is held in the CMS page's memory only; reconnect after a refresh.
+The pairing code is held in the CMS page's memory only. The Connect CMS link uses
+a URL fragment, which browsers do not send in HTTP requests; the CMS removes it
+from the address bar immediately. After a refresh, click the helper's link again
+or pair manually. Do not share the link, screenshots of it, or the terminal output.
 
 ## 6. Run your first transfer
 
@@ -148,7 +156,7 @@ reason.
   restarting automatically. Check MEGA before retrying: if interruption occurred
   after upload but before recording success, a retry can create a new file version.
 - Disconnecting or closing the CMS does not cancel helper work. To monitor it
-  again, reconnect using the same running helper's pairing code.
+  again, click the same running helper's Connect CMS link or pair manually.
 - Finish or allow transfers to fail before stopping the helper with Ctrl+C.
 - The helper retains up to 500 queue entries. Remove finished/failed entries to
   make room. There is no automatic permanent storage of successful local videos.

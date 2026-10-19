@@ -4,11 +4,21 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
-const { TransferQueue, validateLink, validateFolder, createServer, PORT } = require("../local-helper/video-helper.cjs");
+const { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, PORT } = require("../local-helper/video-helper.cjs");
 
 const temporary = [];
 afterEach(async () => {
   for (const directory of temporary.splice(0)) await fs.rm(directory, { recursive: true, force: true });
+});
+
+test("Connect CMS link carries the temporary pairing secret only in the URL fragment", () => {
+  const token = "a".repeat(64);
+  const url = new URL(pairingUrl(token));
+  assert.equal(url.origin, "https://www.enovashan.com");
+  assert.equal(url.pathname, "/cms");
+  assert.equal(url.search, "");
+  assert.equal(url.hash, `#video-helper=${token}`);
+  assert.throws(() => pairingUrl("invalid"));
 });
 
 async function fixture(options = {}) {

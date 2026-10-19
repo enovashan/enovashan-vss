@@ -1,5 +1,12 @@
 (() => {
   const HELPER = "http://127.0.0.1:47831";
+  const fragment = new URLSearchParams(window.location.hash.slice(1));
+  let pendingPairingCode = fragment.get("video-helper");
+  if (fragment.has("video-helper")) {
+    fragment.delete("video-helper");
+    const remaining = fragment.toString();
+    window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${remaining ? `#${remaining}` : ""}`);
+  }
   let pairingCode = "";
   let timer;
   let generation = 0;
@@ -110,29 +117,40 @@
     }
   }
 
-  document.addEventListener("DOMContentLoaded", () => {
-    element("videoConnectBtn").addEventListener("click", async () => {
-      const code = element("videoPairingCode").value.trim();
+  async function connect(code) {
+    disconnectVideoHelper();
+    if (!/^[a-f0-9]{64}$/.test(code)) return showError(new Error("Paste the 64-character pairing code printed by the helper."));
+    pairingCode = code;
+    const current = generation;
+    try {
+      render(await request("/status"));
+      if (current !== generation) return;
+      element("videoConnectedControls").hidden = false;
+      await poll();
+      if (!pairingCode || current !== generation) return;
+      const data = await request("/check");
+      if (current !== generation) return;
+      element("videoToolChecks").textContent = data.checks.map(check =>
+        `${check.name}: ${check.ok ? "Ready" : check.error}`).join("\n");
+    } catch (error) {
+      if (current !== generation) return;
       disconnectVideoHelper();
-      if (!/^[a-f0-9]{64}$/.test(code)) return showError(new Error("Paste the 64-character pairing code printed by the helper."));
-      pairingCode = code;
-      const current = generation;
-      try {
-        render(await request("/status"));
-        if (current !== generation) return;
-        element("videoConnectedControls").hidden = false;
-        await poll();
-        if (!pairingCode || current !== generation) return;
-        const data = await request("/check");
-        if (current !== generation) return;
-        element("videoToolChecks").textContent = data.checks.map(check =>
-          `${check.name}: ${check.ok ? "Ready" : check.error}`).join("\n");
-      } catch (error) {
-        if (current !== generation) return;
-        disconnectVideoHelper();
-        showError(error);
-      }
-    });
+      showError(error);
+    }
+  }
+
+  async function autoConnect() {
+    if (pendingPairingCode === null) return;
+    const code = pendingPairingCode;
+    pendingPairingCode = null;
+    switchMainView("video-downloads");
+    await connect(code);
+  }
+
+  document.addEventListener("DOMContentLoaded", () => {
+    document.addEventListener("cms:authenticated", autoConnect);
+    if (typeof currentUser !== "undefined" && currentUser) void autoConnect();
+    element("videoConnectBtn").addEventListener("click", () => connect(element("videoPairingCode").value.trim()));
     element("videoBrowseBtn").addEventListener("click", () => action(async () => {
       const data = await request("/folders");
       const select = element("videoFolderChoices");

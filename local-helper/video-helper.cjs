@@ -324,11 +324,16 @@ async function main() {
   });
   try { await queue.init(); }
   catch (error) { server.close(); throw error; }
-  console.log(`Enovashan video helper: http://127.0.0.1:${PORT}\nPairing code: ${token}\nLocal temporary files and queue: ${directory}\nKeep this terminal running. MEGA login is handled separately by MEGAcmd.\nAfter an interruption, check MEGA before retrying failed uploads.`);
+  console.log(`Enovashan video helper: http://127.0.0.1:${PORT}\n\nConnect CMS (Ctrl+click on Windows, Command+click on Mac):\n${pairingUrl(token)}\n\nManual pairing code: ${token}\nKeep the link and code private; both expire when this helper stops.\nLocal temporary files and queue: ${directory}\nKeep this terminal running. MEGA login is handled separately by MEGAcmd.\nAfter an interruption, check MEGA before retrying failed uploads.`);
+}
+
+function pairingUrl(token) {
+  if (!/^[a-f0-9]{64}$/.test(token)) throw new Error("Invalid pairing code.");
+  return `https://www.enovashan.com/cms#video-helper=${token}`;
 }
 
 if (require.main === module) {
   main().catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { TransferQueue, validateLink, validateFolder, createServer, PORT };
+module.exports = { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, PORT };

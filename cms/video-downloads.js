@@ -54,6 +54,7 @@
       </tr>`;
     }).join("");
     element("videoEmptyQueue").hidden = data.jobs.length !== 0;
+    element("videoEmptyQueue").textContent = "No transfers queued yet.";
   }
 
   async function poll() {
@@ -82,6 +83,11 @@
     element("videoJobs").innerHTML = "";
     element("videoToolChecks").textContent = "";
     element("videoFolderChoices").replaceChildren();
+    element("videoFolderChoices").hidden = true;
+    element("videoSaveFolderBtn").hidden = true;
+    element("videoCurrentFolder").textContent = "";
+    element("videoEmptyQueue").hidden = false;
+    element("videoEmptyQueue").textContent = "Connect the helper to view its queue.";
     element("videoHelperStatus").textContent = "Helper disconnected. Existing transfers continue in the helper.";
   }
   window.disconnectVideoHelper = disconnectVideoHelper;

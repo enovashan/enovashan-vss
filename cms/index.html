@@ -941,6 +941,23 @@
           <span id="subscribersPageLabel"></span>
           <button id="subscribersNextBtn" class="cms-btn-secondary" onclick="loadSubscribers(subscriberPage + 1)" disabled>Next</button>
         </div>
+        <div class="cms-posts-header" style="margin-top: 2.5rem;">
+          <div>
+            <h2 id="unsubscribedHeading">Unsubscribed</h2>
+            <p style="margin: 0.25rem 0 0; color: var(--muted); font-size: 0.9rem;">Former subscribers, most recent unsubscriptions first. Dates are shown in your local time.</p>
+          </div>
+          <button id="refreshUnsubscribedBtn" class="cms-btn-secondary" onclick="loadSubscribers(1, 'unsubscribed')">Refresh</button>
+        </div>
+        <p id="unsubscribedStatus" role="status" aria-live="polite"></p>
+        <table class="cms-subscriber-table" aria-labelledby="unsubscribedHeading">
+          <thead><tr><th scope="col">Email address</th><th scope="col">Subscription date</th><th scope="col">Unsubscription date</th></tr></thead>
+          <tbody id="unsubscribedList"></tbody>
+        </table>
+        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; margin-top: 1rem;">
+          <button id="unsubscribedPreviousBtn" class="cms-btn-secondary" onclick="loadSubscribers(unsubscribedPage - 1, 'unsubscribed')" disabled>Previous</button>
+          <span id="unsubscribedPageLabel"></span>
+          <button id="unsubscribedNextBtn" class="cms-btn-secondary" onclick="loadSubscribers(unsubscribedPage + 1, 'unsubscribed')" disabled>Next</button>
+        </div>
       </section>
 
       <!-- VIEW 4: COMPOSER & MARKDOWN EDITOR -->
@@ -1238,6 +1255,8 @@
       let isUploadingThumbnail = false;
       let subscriberPage = 1;
       let subscribersLoading = false;
+      let unsubscribedPage = 1;
+      let unsubscribedLoading = false;
 
       // Initialize on load
       window.addEventListener("DOMContentLoaded", async () => {
@@ -1339,6 +1358,7 @@
         document.getElementById("suggestionsSection").style.display = "none";
         document.getElementById("subscribersSection").style.display = "none";
         document.getElementById("subscribersList").innerHTML = "";
+        document.getElementById("unsubscribedList").innerHTML = "";
         document.getElementById("subscriberCount").textContent = "Loading...";
         document.getElementById("cmsNavTabs").style.display = "none";
         document.getElementById("cmsUserPill").style.display = "none";
@@ -1381,6 +1401,7 @@
           tabSubscribers.classList.add("active");
           secSubscribers.style.display = "block";
           loadSubscribers(1);
+          loadSubscribers(1, "unsubscribed");
         } else {
           tabEditor.classList.add("active");
           secEditor.style.display = "block";
@@ -1413,37 +1434,49 @@
         }
       }
 
-      async function loadSubscribers(page = 1) {
-        if (subscribersLoading) return;
-        subscribersLoading = true;
+      function formatSubscriberDate(value) {
+        const date = new Date(value);
+        const formatted = date.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
+        return `<time datetime="${escapeHtml(value)}">${escapeHtml(formatted)}</time>`;
+      }
+
+      async function loadSubscribers(page = 1, audience = "active") {
+        const unsubscribed = audience === "unsubscribed";
+        if (unsubscribed ? unsubscribedLoading : subscribersLoading) return;
+        if (unsubscribed) unsubscribedLoading = true;
+        else subscribersLoading = true;
+        const prefix = unsubscribed ? "unsubscribed" : "subscribers";
         const token = currentSessionToken;
-        const status = document.getElementById("subscribersStatus");
-        const previous = document.getElementById("subscribersPreviousBtn");
-        const next = document.getElementById("subscribersNextBtn");
-        const refresh = document.getElementById("refreshSubscribersBtn");
-        const list = document.getElementById("subscribersList");
+        const status = document.getElementById(`${prefix}Status`);
+        const previous = document.getElementById(`${prefix}PreviousBtn`);
+        const next = document.getElementById(`${prefix}NextBtn`);
+        const refresh = document.getElementById(unsubscribed ? "refreshUnsubscribedBtn" : "refreshSubscribersBtn");
+        const list = document.getElementById(`${prefix}List`);
         previous.disabled = next.disabled = refresh.disabled = true;
         status.textContent = "Loading subscribers...";
         list.innerHTML = "";
-        document.getElementById("subscribersPageLabel").textContent = "";
+        document.getElementById(`${prefix}PageLabel`).textContent = "";
         try {
-          let data = await fetchSubscribers(`page=${page}`);
+          let data = await fetchSubscribers(`page=${page}&status=${audience}`);
           if (token !== currentSessionToken) return;
           const lastPage = Math.max(1, Math.ceil(data.total / data.pageSize));
           if (page > lastPage) {
             page = lastPage;
-            data = await fetchSubscribers(`page=${page}`);
+            data = await fetchSubscribers(`page=${page}&status=${audience}`);
             if (token !== currentSessionToken) return;
           }
-          subscriberPage = page;
-          document.getElementById("subscriberCount").textContent = data.total.toLocaleString();
+          if (unsubscribed) unsubscribedPage = page;
+          else {
+            subscriberPage = page;
+            document.getElementById("subscriberCount").textContent = data.total.toLocaleString();
+          }
           list.innerHTML = data.subscribers.map((subscriber) => {
-            const date = new Date(subscriber.created_at);
-            const formatted = date.toLocaleString(undefined, { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" });
-            return `<tr><td>${escapeHtml(subscriber.email)}</td><td><time datetime="${escapeHtml(subscriber.created_at)}">${escapeHtml(formatted)}</time></td></tr>`;
+            return `<tr><td>${escapeHtml(subscriber.email)}</td><td>${formatSubscriberDate(subscriber.created_at)}</td>${unsubscribed ? `<td>${formatSubscriberDate(subscriber.unsubscribed_at)}</td>` : ""}</tr>`;
           }).join("");
-          status.textContent = data.total ? `${data.total.toLocaleString()} active subscribers` : "No active subscribers yet.";
-          document.getElementById("subscribersPageLabel").textContent = `Page ${page} of ${Math.max(1, Math.ceil(data.total / data.pageSize))}`;
+          status.textContent = unsubscribed
+            ? (data.total ? `${data.total.toLocaleString()} unsubscribed addresses` : "No unsubscribed addresses yet.")
+            : (data.total ? `${data.total.toLocaleString()} active subscribers` : "No active subscribers yet.");
+          document.getElementById(`${prefix}PageLabel`).textContent = `Page ${page} of ${Math.max(1, Math.ceil(data.total / data.pageSize))}`;
           previous.disabled = page <= 1;
           next.disabled = page * data.pageSize >= data.total;
         } catch (error) {
@@ -1451,7 +1484,8 @@
           status.textContent = `Could not load subscribers: ${error.message}. Use Refresh to try again.`;
           showAlert(error.message, "danger", 8000);
         } finally {
-          subscribersLoading = false;
+          if (unsubscribed) unsubscribedLoading = false;
+          else subscribersLoading = false;
           refresh.disabled = false;
         }
       }

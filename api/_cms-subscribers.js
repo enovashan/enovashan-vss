@@ -11,16 +11,21 @@ module.exports = async function handler(request, response) {
   if (!auth.ok) return reply(auth.status, { error: auth.error });
 
   const summary = request.query?.summary === "true";
+  const status = request.query?.status || "active";
+  if (!["active", "unsubscribed"].includes(status)) {
+    return reply(400, { error: "Status must be active or unsubscribed." });
+  }
+  const unsubscribed = status === "unsubscribed";
   const page = request.query?.page === undefined ? 1 : Number(request.query.page);
   const pageSize = 50;
   if (!Number.isSafeInteger(page) || page < 1 || !Number.isSafeInteger(page * pageSize)) {
     return reply(400, { error: "Page must be a positive integer." });
   }
   const query = new URLSearchParams({
-    select: summary ? "id" : "email,created_at",
-    confirmed: "eq.true",
-    unsubscribed_at: "is.null",
-    order: "created_at.desc,id.desc",
+    select: summary ? "id" : unsubscribed ? "email,created_at,unsubscribed_at" : "email,created_at",
+    ...(!unsubscribed ? { confirmed: "eq.true" } : {}),
+    unsubscribed_at: unsubscribed ? "not.is.null" : "is.null",
+    order: unsubscribed ? "unsubscribed_at.desc,id.desc" : "created_at.desc,id.desc",
     limit: summary ? "0" : String(pageSize),
     offset: summary ? "0" : String((page - 1) * pageSize),
   });

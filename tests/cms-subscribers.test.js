@@ -92,6 +92,29 @@ test("header count uses exact total rather than the page size", async () => {
   assert.deepEqual(res.body.subscribers, []);
 });
 
+test("unsubscribed list includes both dates, newest unsubscriptions first, independently paginated", async () => {
+  setup();
+  const rows = [{ email: "former@example.com", created_at: "2026-01-01T09:00:00Z", unsubscribed_at: "2026-10-19T09:00:00Z" }];
+  global.fetch = async (url) => {
+    if (url.endsWith("/auth/v1/user")) return json({ email: "admin@example.com" });
+    const query = new URL(url).searchParams;
+    assert.equal(query.get("select"), "email,created_at,unsubscribed_at");
+    assert.equal(query.get("order"), "unsubscribed_at.desc,id.desc");
+    assert.equal(query.get("unsubscribed_at"), "not.is.null");
+    assert.equal(query.has("confirmed"), false);
+    assert.equal(query.get("offset"), "50");
+    return json(rows, 200, { "content-range": "50-50/51" });
+  };
+  const res = response();
+  await handler(request({ status: "unsubscribed", page: "2" }), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.total, 51);
+  assert.deepEqual(res.body.subscribers, rows);
+  const invalid = response();
+  await handler(request({ status: "unknown" }), invalid);
+  assert.equal(invalid.statusCode, 400);
+});
+
 test("existing CMS endpoint routes subscriber requests to the admin-only handler", async () => {
   setup();
   global.fetch = async (url) => {
@@ -187,4 +210,33 @@ test("CMS displays empty states, explicit errors, and recovers pages after count
   assert.match(get("subscribersStatus").textContent, /Storage unavailable/);
   assert.equal(get("refreshSubscribersBtn").disabled, false);
   assert.equal(get("subscribersList").innerHTML, "");
+});
+
+test("unsubscribed table displays both dates and does not change active count or pagination", async () => {
+  const { context, get } = composer(async (url) => {
+    assert.match(url, /status=unsubscribed/);
+    return json({
+      total: 51, pageSize: 50,
+      subscribers: [{ email: "<former>@example.com", created_at: "2026-01-01T09:00:00Z", unsubscribed_at: "2026-10-19T09:00:00Z" }],
+    });
+  });
+  get("subscriberCount").textContent = "4";
+  get("subscribersPageLabel").textContent = "Page 1 of 1";
+  await vm.runInContext('loadSubscribers(2, "unsubscribed")', context);
+  assert.match(get("unsubscribedList").innerHTML, /&lt;former&gt;@example.com/);
+  assert.match(get("unsubscribedList").innerHTML, /datetime="2026-01-01T09:00:00Z"/);
+  assert.match(get("unsubscribedList").innerHTML, /datetime="2026-10-19T09:00:00Z"/);
+  assert.equal(get("unsubscribedPageLabel").textContent, "Page 2 of 2");
+  assert.equal(get("unsubscribedPreviousBtn").disabled, false);
+  assert.equal(get("unsubscribedNextBtn").disabled, true);
+  assert.equal(get("subscriberCount").textContent, "4");
+  assert.equal(get("subscribersPageLabel").textContent, "Page 1 of 1");
+  context.fetch = async () => json({ total: 0, subscribers: [], pageSize: 50 });
+  await vm.runInContext('loadSubscribers(1, "unsubscribed")', context);
+  assert.equal(get("unsubscribedStatus").textContent, "No unsubscribed addresses yet.");
+  context.fetch = async () => json({ error: "Storage unavailable" }, 502);
+  await vm.runInContext('loadSubscribers(1, "unsubscribed")', context);
+  assert.match(get("unsubscribedStatus").textContent, /Storage unavailable/);
+  assert.equal(get("refreshUnsubscribedBtn").disabled, false);
+  assert.equal(get("unsubscribedList").innerHTML, "");
 });

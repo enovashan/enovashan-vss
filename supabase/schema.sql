@@ -132,6 +132,8 @@ create index if not exists subscribers_confirmed_idx
 
 -- The CMS subscriber count/list uses confirmed, non-unsubscribed rows, matching
 -- campaign recipients, and displays created_at as the subscription date (newest first).
+-- Its separate unsubscribed list shows created_at and unsubscribed_at, ordered by
+-- the most recent unsubscription, without changing the active subscriber count.
 alter table public.subscribers enable row level security;
 revoke all on public.subscribers from anon, authenticated;
 grant all on public.subscribers to service_role;

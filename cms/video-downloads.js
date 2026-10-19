@@ -49,15 +49,18 @@
   function render(data) {
     if (data.version !== 1 || !Array.isArray(data.jobs)) throw new Error("Unsupported helper version. Download the current helper and restart it.");
     if (data.fatalError) throw new Error(data.fatalError);
+    const clear = element("videoClearListBtn");
+    clear.disabled = !data.supportsClearList || !data.jobs.some(job => ["Ok", "Failed"].includes(job.status));
+    element("videoClearHelp").textContent = data.supportsClearList
+      ? "Clears completed and failed entries and their temporary files. Pending and running transfers stay; MEGA files are never deleted."
+      : "Download and restart the latest helper to enable Clear list.";
     element("videoCurrentFolder").textContent = data.folder || "No MEGA folder selected";
     element("videoJobs").innerHTML = data.jobs.map(job => {
-      const complete = job.status === "Ok";
       const failed = job.status === "Failed";
       return `<tr>
         <td><span>${escape(job.url)}</span><br /><small>MEGA: ${escape(job.folder)}/${escape(job.id)}.mp4</small></td>
         <td><strong>${escape(job.status)}</strong>${job.error ? `<p>${escape(job.error)}</p>` : ""}</td>
-        <td>${failed ? `<button type="button" class="cms-btn-secondary" data-action="retry" data-id="${escape(job.id)}">Retry</button>` : ""}
-        ${complete || failed ? `<button type="button" class="cms-btn-secondary" data-action="remove" data-id="${escape(job.id)}">${failed ? "Discard temp files & remove" : "Remove from list"}</button>` : ""}</td>
+        <td>${failed ? `<button type="button" class="cms-btn-secondary" data-action="retry" data-id="${escape(job.id)}">Retry</button>` : ""}</td>
       </tr>`;
     }).join("");
     element("videoEmptyQueue").hidden = data.jobs.length !== 0;
@@ -88,6 +91,7 @@
     element("videoPairingCode").value = "";
     element("videoConnectedControls").hidden = true;
     element("videoJobs").innerHTML = "";
+    element("videoClearListBtn").disabled = true;
     element("videoToolChecks").textContent = "";
     element("videoFolderChoices").replaceChildren();
     element("videoFolderChoices").hidden = true;
@@ -179,10 +183,16 @@
       const button = event.target.closest("button[data-action]");
       if (!button) return;
       const { action: operation, id } = button.dataset;
-      if (operation === "remove" && !confirm("Remove this entry and delete any temporary files for it? Files already in MEGA are not deleted.")) return;
       action(async () => {
         await request(`/${operation}`, { id });
         render(await request("/status"));
+      });
+    });
+    element("videoClearListBtn").addEventListener("click", () => {
+      if (!confirm("Clear all completed and failed entries and delete their temporary files? Pending and running transfers will stay. Files in MEGA will not be deleted.")) return;
+      return action(async () => {
+        try { await request("/clear", {}); }
+        finally { render(await request("/status")); }
       });
     });
     element("videoDisconnectBtn").addEventListener("click", disconnectVideoHelper);

@@ -4,7 +4,9 @@ const fs = require("node:fs/promises");
 const os = require("node:os");
 const path = require("node:path");
 const http = require("node:http");
-const { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, PORT } = require("../local-helper/video-helper.cjs");
+const { execFile } = require("node:child_process");
+const { promisify } = require("node:util");
+const { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, openCms, PORT } = require("../local-helper/video-helper.cjs");
 
 const temporary = [];
 afterEach(async () => {
@@ -19,6 +21,60 @@ test("Connect CMS link carries the temporary pairing secret only in the URL frag
   assert.equal(url.search, "");
   assert.equal(url.hash, `#video-helper=${token}`);
   assert.throws(() => pairingUrl("invalid"));
+});
+
+test("automatic browser launch uses explicit process arguments and a validated CMS link", async () => {
+  const url = pairingUrl("d".repeat(64));
+  const calls = [];
+  const run = async (file, args) => calls.push({ file, args });
+  await openCms(url, "win32", run);
+  assert.match(calls[0].file, /powershell\.exe$/);
+  assert.equal(calls[0].args.at(-1), `Start-Process -FilePath '${url}'`);
+  await openCms(url, "darwin", run);
+  assert.equal(calls[1].file, "/usr/bin/open");
+  assert.deepEqual(calls[1].args, [url]);
+  assert.throws(() => openCms("https://evil.example/'", "win32", run), /Invalid/);
+});
+
+test("Windows launcher finds an adjacent helper, refreshes PATH and passes auto-open flag", { skip: process.platform !== "win32" }, async () => {
+  const directory = await fs.mkdtemp(path.join(os.tmpdir(), "enovashan launcher test "));
+  temporary.push(directory);
+  const launcher = path.join(directory, "Start-Enovashan.cmd");
+  await fs.copyFile(path.join(__dirname, "..", "local-helper", "Start-Enovashan.cmd"), launcher);
+  await fs.writeFile(path.join(directory, "video-helper.cjs"), `
+    const fs = require("node:fs");
+    fs.writeFileSync(require("node:path").join(__dirname, "result.json"), JSON.stringify({args:process.argv.slice(2),path:process.env.Path||process.env.PATH}));
+  `);
+  await promisify(execFile)(process.env.ComSpec, ["/d", "/c", "Start-Enovashan.cmd"], { cwd: directory, timeout: 20000 });
+  const result = JSON.parse(await fs.readFile(path.join(directory, "result.json"), "utf8"));
+  assert.deepEqual(result.args, ["--open-cms"]);
+  assert.ok(result.path);
+});
+
+test("bulk clearing removes completed and failed entries only, including their staging files", async () => {
+  const { queue, directory } = await fixture();
+  const statuses = ["Ok", "Failed", "Pending", "Downloading", "Uploading"];
+  queue.state.jobs = statuses.map((status, index) => ({
+    id: `${index}2345678-1234-1234-1234-123456789abc`, status,
+  }));
+  for (const job of queue.state.jobs) {
+    await fs.mkdir(path.join(directory, job.id));
+    await fs.writeFile(path.join(directory, job.id, "video.mp4"), "video");
+  }
+  await queue.clearFinished();
+  assert.deepEqual(queue.state.jobs.map(job => job.status), ["Pending", "Downloading", "Uploading"]);
+  for (const job of queue.state.jobs) assert.ok((await fs.stat(path.join(directory, job.id, "video.mp4"))).isFile());
+  for (const index of [0, 1]) await assert.rejects(fs.stat(path.join(directory, `${index}2345678-1234-1234-1234-123456789abc`)), { code: "ENOENT" });
+  const saved = JSON.parse(await fs.readFile(path.join(directory, "state.json"), "utf8"));
+  assert.equal(saved.jobs.length, 3);
+});
+
+test("bulk cleanup failures remain visible while other finished entries are cleared", async () => {
+  const { queue } = await fixture();
+  queue.state.jobs = [{ id: "bad", status: "Failed" }, { id: "good", status: "Ok" }];
+  queue.clean = async job => { if (job.id === "bad") throw new Error("Permission denied"); };
+  await assert.rejects(queue.clearFinished(), /Some entries.*bad: Permission denied/);
+  assert.deepEqual(queue.state.jobs.map(job => job.id), ["bad"]);
 });
 
 async function fixture(options = {}) {

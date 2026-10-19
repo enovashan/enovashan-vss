@@ -76,6 +76,27 @@ MEGA sessions and destination settings.
 
 ## 4. Download and start the helper
 
+### Windows: one double-click after initial download
+
+Download **both** the latest **local helper** and **Windows launcher** from
+CMS > Video Downloads into the same folder. The launcher is named
+`Start-Enovashan.cmd`; the helper can be named `enovashan-video-helper.cjs` or
+`video-helper.cjs`. Keep these files together, for example in a folder on your
+Desktop.
+
+From then on, **double-click Start-Enovashan.cmd**. It refreshes Windows PATH,
+starts the helper, and opens the paired CMS in your default browser. Sign in if
+needed. Keep the launcher window open while transfers run. Stop your previous
+helper first before launching a replacement. Your saved destination and queue
+remain unchanged. Windows may ask you to approve running a downloaded launcher;
+inspect the file and only run your trusted Enovashan download.
+
+The website cannot launch a local application directly without an installed
+protocol handler. This launcher requires no app-link registration or terminal
+commands for everyday use.
+
+### Manual start / macOS
+
 In CMS > **Video Downloads**, click **Download local helper**. Keep the `.cjs`
 extension. No npm packages or Python scripts are required by this helper itself.
 yt-dlp and FFmpeg are separate tools.
@@ -149,9 +170,12 @@ reason.
 
 - Failed files stay locally for retry. **Retry** reuses a completed MP4 if available.
 - If upload succeeded but cleanup failed, the error says so; Retry only cleans up.
-- **Discard temp files & remove** deletes the local job files and removes its row.
-  It never deletes the video in MEGA.
-- Completed rows can be removed without deleting their MEGA files.
+- **Clear list**, above the queue, clears all completed and failed entries and
+  deletes their local temporary files after confirmation. Pending, downloading,
+  and uploading entries remain. No files in MEGA are deleted. Entries whose
+  temporary files cannot be deleted remain visible and an error is shown.
+- Per-video Retry remains available for failures; there are no per-video Remove
+  buttons. Download the latest helper to enable bulk clearing.
 - Stopping/restarting the helper marks unfinished jobs **Failed** rather than
   restarting automatically. Check MEGA before retrying: if interruption occurred
   after upload but before recording success, a retry can create a new file version.

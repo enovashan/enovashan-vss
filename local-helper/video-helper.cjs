@@ -185,6 +185,16 @@ class TransferQueue {
     await this.save();
   }
 
+  async clearFinished() {
+    const finished = this.state.jobs.filter(job => ["Ok", "Failed"].includes(job.status));
+    const errors = [];
+    for (const job of finished) {
+      try { await this.remove(job.id); }
+      catch (error) { errors.push(`${job.id}: ${error.message}`); }
+    }
+    if (errors.length) throw new Error(`Some entries could not be cleared and remain in the list. ${errors.join("\n")}`);
+  }
+
   start() {
     if (this.running) return;
     this.running = true;
@@ -282,7 +292,7 @@ function createServer(queue, token) {
     if (writing) mutation = true;
     try {
       if (request.method === "GET" && route === "/status") {
-        return reply(200, { version: 1, folder: queue.state.folder, jobs: queue.state.jobs, fatalError: queue.fatalError });
+        return reply(200, { version: 1, supportsClearList: true, folder: queue.state.folder, jobs: queue.state.jobs, fatalError: queue.fatalError });
       }
       if (request.method === "GET" && route === "/check") return reply(200, { checks: await queue.check() });
       if (request.method === "GET" && route === "/folders") return reply(200, { folders: await queue.folders() });
@@ -294,6 +304,7 @@ function createServer(queue, token) {
           await queue.add(input.links);
         } else if (route === "/retry") await queue.retry(input.id);
         else if (route === "/remove") await queue.remove(input.id);
+        else if (route === "/clear") await queue.clearFinished();
         else return reply(404, { error: "Unknown helper endpoint." });
         return reply(200, { accepted: true });
       }
@@ -325,6 +336,22 @@ async function main() {
   try { await queue.init(); }
   catch (error) { server.close(); throw error; }
   console.log(`Enovashan video helper: http://127.0.0.1:${PORT}\n\nConnect CMS (Ctrl+click on Windows, Command+click on Mac):\n${pairingUrl(token)}\n\nManual pairing code: ${token}\nKeep the link and code private; both expire when this helper stops.\nLocal temporary files and queue: ${directory}\nKeep this terminal running. MEGA login is handled separately by MEGAcmd.\nAfter an interruption, check MEGA before retrying failed uploads.`);
+  if (process.argv.includes("--open-cms")) {
+    try { await openCms(pairingUrl(token)); }
+    catch (error) { console.error(`Could not open the browser: ${error.message}. Use the Connect CMS link above instead.`); }
+  }
+}
+
+function openCms(url, platform = process.platform, run = runCommand) {
+  if (!/^https:\/\/www\.enovashan\.com\/cms#video-helper=[a-f0-9]{64}$/.test(url)) {
+    throw new Error("Invalid CMS pairing link.");
+  }
+  if (platform === "win32") {
+    const powershell = path.join(process.env.SystemRoot || "C:\\Windows", "System32", "WindowsPowerShell", "v1.0", "powershell.exe");
+    return run(powershell, ["-NoProfile", "-Command", `Start-Process -FilePath '${url}'`], 15000);
+  }
+  if (platform === "darwin") return run("/usr/bin/open", [url], 15000);
+  return run("xdg-open", [url], 15000);
 }
 
 function pairingUrl(token) {
@@ -336,4 +363,4 @@ if (require.main === module) {
   main().catch(error => { console.error(error.message); process.exitCode = 1; });
 }
 
-module.exports = { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, PORT };
+module.exports = { TransferQueue, validateLink, validateFolder, createServer, pairingUrl, openCms, PORT };

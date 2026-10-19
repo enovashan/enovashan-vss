@@ -41,7 +41,7 @@ function interfaceFixture(hash = "", signedIn = false) {
     AbortSignal, console, setTimeout() { return 1; }, clearTimeout() {}, confirm() { return true; },
     fetch: async (url, options) => {
       requests.push({ url, options });
-      if (url.endsWith("/status")) return new Response(JSON.stringify({ version: 1, jobs, folder: "/Videos" }));
+      if (url.endsWith("/status")) return new Response(JSON.stringify({ version: 1, supportsClearList: true, jobs, folder: "/Videos" }));
       if (url.endsWith("/check")) return new Response(JSON.stringify({ checks: [{ name: "yt-dlp", ok: true }] }));
       if (url.endsWith("/folders")) return new Response(JSON.stringify({ folders: ["/", "/Videos"] }));
       return new Response(JSON.stringify({ accepted: true }));
@@ -146,4 +146,32 @@ test("invalid helper fragments are stripped and fail explicitly without sending 
   assert.equal(context.location.hash, "");
   assert.equal(requests.length, 0);
   assert.match(get("videoHelperStatus").textContent, /64-character/);
+});
+
+test("single Clear list control replaces per-video remove buttons and requests bulk cleanup", async () => {
+  const { get, callbacks, requests, token } = interfaceFixture();
+  get("videoPairingCode").value = token;
+  await callbacks.get("videoConnectBtn:click")();
+  assert.doesNotMatch(get("videoJobs").innerHTML, /data-action="remove"|Remove from list|Discard temp/);
+  assert.match(get("videoJobs").innerHTML, /Retry/);
+  assert.equal(get("videoClearListBtn").disabled, false);
+  await callbacks.get("videoClearListBtn:click")();
+  const request = requests.find(request => request.url.endsWith("/clear"));
+  assert.equal(request.options.method, "POST");
+  assert.equal(request.options.body, "{}");
+});
+
+test("Clear list respects cancellation and is disabled for older helpers", async () => {
+  const { get, callbacks, requests, context, token } = interfaceFixture();
+  get("videoPairingCode").value = token;
+  await callbacks.get("videoConnectBtn:click")();
+  context.confirm = () => false;
+  await callbacks.get("videoClearListBtn:click")();
+  assert.equal(requests.some(request => request.url.endsWith("/clear")), false);
+  context.fetch = async url => new Response(JSON.stringify(url.endsWith("/check")
+    ? { checks: [] } : { version: 1, jobs: [], folder: "/Videos" }));
+  get("videoPairingCode").value = token;
+  await callbacks.get("videoConnectBtn:click")();
+  assert.equal(get("videoClearListBtn").disabled, true);
+  assert.match(get("videoClearHelp").textContent, /latest helper/);
 });

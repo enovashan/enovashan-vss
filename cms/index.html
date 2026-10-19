@@ -976,7 +976,9 @@
           <h3>1. Set up this computer</h3>
           <p>Create your account at <a href="https://mega.nz/register" target="_blank" rel="noopener noreferrer">MEGA</a>, install the tools, and sign in through MEGAcmd locally. Never enter your MEGA password here.</p>
           <p><a href="/local-helper/SETUP.md" target="_blank" class="cms-btn-secondary">Windows &amp; Mac setup guide</a>
-            <a href="/local-helper/video-helper.cjs" download="enovashan-video-helper.cjs" class="cms-btn-secondary">Download local helper</a></p>
+            <a href="/local-helper/video-helper.cjs" download="enovashan-video-helper.cjs" class="cms-btn-secondary">Download local helper</a>
+            <a href="/local-helper/Start-Enovashan.cmd" download="Start-Enovashan.cmd" class="cms-btn-secondary">Download Windows launcher</a></p>
+          <p>Windows: save the latest helper and launcher in the same folder. Then double-click <strong>Start-Enovashan.cmd</strong> whenever you need it. It starts the helper and opens the paired CMS automatically. Keep its window open. A website cannot start a local program directly without a separate installation.</p>
           <h3>2. Start and pair the helper</h3>
           <p>Click the <strong>Connect CMS</strong> link printed by the latest helper. It opens this page and pairs automatically after sign-in. Or use the manual code below.</p>
           <div class="cms-form-group">
@@ -1008,6 +1010,8 @@
           <p id="videoActionStatus" role="status" aria-live="polite"></p>
         </div>
         <h3>Transfer queue on this computer</h3>
+        <button id="videoClearListBtn" type="button" class="cms-btn-secondary" disabled>Clear list</button>
+        <p id="videoClearHelp">Connect the latest helper to clear completed and failed entries. Pending and running transfers are kept.</p>
         <p id="videoEmptyQueue">Connect the helper to view its queue.</p>
         <table class="cms-subscriber-table">
           <thead><tr><th scope="col">Reel / MEGA file</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>

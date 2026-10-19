@@ -161,7 +161,7 @@ test("storage and count failures cannot become a false zero count", async () => 
 
 function composer(fetch) {
   const html = fs.readFileSync(path.join(__dirname, "..", "cms", "index.html"), "utf8");
-  const script = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   const elements = new Map();
   const get = (id) => {
     if (!elements.has(id)) elements.set(id, {

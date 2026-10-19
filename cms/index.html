@@ -802,6 +802,10 @@
         font-size: 0.8rem;
         color: var(--muted);
       }
+
+      #videoDownloadsSection [hidden] {
+        display: none !important;
+      }
     </style>
   </head>
   <body>
@@ -826,6 +830,7 @@
         <button class="cms-tab-btn" id="tabEditorBtn" onclick="switchMainView('editor')">+ New Article</button>
         <button class="cms-tab-btn" id="tabSuggestionsBtn" onclick="switchMainView('suggestions')">Topic Ideas</button>
         <button class="cms-tab-btn" id="tabSubscribersBtn" onclick="switchMainView('subscribers')" title="View active newsletter subscribers">Subscribers (<span id="subscriberCount" aria-live="polite">Loading...</span>)</button>
+        <button class="cms-tab-btn" id="tabVideoDownloadsBtn" onclick="switchMainView('video-downloads')">Video Downloads</button>
       </nav>
 
       <div class="cms-user-pill" id="cmsUserPill" style="display: none;">
@@ -958,6 +963,55 @@
           <span id="unsubscribedPageLabel"></span>
           <button id="unsubscribedNextBtn" class="cms-btn-secondary" onclick="loadSubscribers(unsubscribedPage + 1, 'unsubscribed')" disabled>Next</button>
         </div>
+      </section>
+
+      <section id="videoDownloadsSection" style="display: none;" aria-labelledby="videoDownloadsHeading">
+        <div class="cms-posts-header">
+          <div>
+            <h2 id="videoDownloadsHeading">Video Downloads to MEGA</h2>
+            <p>Facebook and Instagram Reels you own or have permission to download. Transfers run on this computer, not on Vercel or Supabase.</p>
+          </div>
+        </div>
+        <div class="cms-meta-panel">
+          <h3>1. Set up this computer</h3>
+          <p>Create your account at <a href="https://mega.nz/register" target="_blank" rel="noopener noreferrer">MEGA</a>, install the tools, and sign in through MEGAcmd locally. Never enter your MEGA password here.</p>
+          <p><a href="/local-helper/SETUP.md" target="_blank" class="cms-btn-secondary">Windows &amp; Mac setup guide</a>
+            <a href="/local-helper/video-helper.cjs" download="enovashan-video-helper.cjs" class="cms-btn-secondary">Download local helper</a></p>
+          <h3>2. Start and pair the helper</h3>
+          <div class="cms-form-group">
+            <label for="videoPairingCode">Pairing code from the helper terminal</label>
+            <input id="videoPairingCode" type="password" maxlength="64" autocomplete="off" spellcheck="false" placeholder="Start the helper, then paste its pairing code" />
+          </div>
+          <button id="videoConnectBtn" type="button" class="cms-btn-primary">Connect helper</button>
+          <button id="videoDisconnectBtn" type="button" class="cms-btn-secondary">Disconnect</button>
+          <p id="videoHelperStatus" role="status" aria-live="polite">Helper not connected. Chrome or Edge is recommended; allow local-network access when prompted.</p>
+          <pre id="videoToolChecks" style="white-space: pre-wrap; overflow-wrap: anywhere;"></pre>
+          <div id="videoConnectedControls" hidden>
+            <h3>3. Choose a MEGA folder</h3>
+            <p>Current destination: <strong id="videoCurrentFolder"></strong>. Saved by the helper on this computer, across sessions.</p>
+            <button id="videoBrowseBtn" type="button" class="cms-btn-secondary">Browse MEGA folders</button>
+            <div class="cms-form-group" style="margin-top: 0.75rem;">
+              <label for="videoFolderChoices">Destination folder (create new folders in MEGA first)</label>
+              <select id="videoFolderChoices" hidden></select>
+            </div>
+            <button id="videoSaveFolderBtn" type="button" class="cms-btn-secondary" hidden>Save destination</button>
+            <h3>4. Submit Reel links</h3>
+            <div class="cms-form-group">
+              <label for="videoLinks">One Facebook or Instagram Reel link per line (up to 50)</label>
+              <textarea id="videoLinks" rows="7" placeholder="https://www.instagram.com/reel/..." maxlength="102400"></textarea>
+            </div>
+            <label><input id="videoPermission" type="checkbox" /> I own these videos or have permission to download and store them.</label>
+            <p><button id="videoSubmitBtn" type="button" class="cms-btn-primary">Download &amp; upload to MEGA</button></p>
+            <p>One video at a time: Pending &rarr; Downloading &rarr; Uploading &rarr; Ok / Failed. Ok means uploaded and temporary files removed. Failed files stay on this computer until retried or discarded. Limits: 10 minutes and 500 MB per finished video. Restricted or unavailable links may fail; no access restrictions are bypassed.</p>
+          </div>
+          <p id="videoActionStatus" role="status" aria-live="polite"></p>
+        </div>
+        <h3>Transfer queue on this computer</h3>
+        <p id="videoEmptyQueue">Connect the helper to view its queue.</p>
+        <table class="cms-subscriber-table">
+          <thead><tr><th scope="col">Reel / MEGA file</th><th scope="col">Status</th><th scope="col">Actions</th></tr></thead>
+          <tbody id="videoJobs"></tbody>
+        </table>
       </section>
 
       <!-- VIEW 4: COMPOSER & MARKDOWN EDITOR -->
@@ -1357,6 +1411,8 @@
         document.getElementById("editorSection").style.display = "none";
         document.getElementById("suggestionsSection").style.display = "none";
         document.getElementById("subscribersSection").style.display = "none";
+        document.getElementById("videoDownloadsSection").style.display = "none";
+        if (typeof disconnectVideoHelper === "function") disconnectVideoHelper();
         document.getElementById("subscribersList").innerHTML = "";
         document.getElementById("unsubscribedList").innerHTML = "";
         document.getElementById("subscriberCount").textContent = "Loading...";
@@ -1386,9 +1442,11 @@
         const secSuggestions = document.getElementById("suggestionsSection");
         const tabSubscribers = document.getElementById("tabSubscribersBtn");
         const secSubscribers = document.getElementById("subscribersSection");
+        const tabVideoDownloads = document.getElementById("tabVideoDownloadsBtn");
+        const secVideoDownloads = document.getElementById("videoDownloadsSection");
 
-        [tabArticles, tabEditor, tabSuggestions, tabSubscribers].forEach((tab) => tab.classList.remove("active"));
-        [secArticles, secEditor, secSuggestions, secSubscribers].forEach((section) => section.style.display = "none");
+        [tabArticles, tabEditor, tabSuggestions, tabSubscribers, tabVideoDownloads].forEach((tab) => tab.classList.remove("active"));
+        [secArticles, secEditor, secSuggestions, secSubscribers, secVideoDownloads].forEach((section) => section.style.display = "none");
 
         if (view === "articles") {
           tabArticles.classList.add("active");
@@ -1402,6 +1460,9 @@
           secSubscribers.style.display = "block";
           loadSubscribers(1);
           loadSubscribers(1, "unsubscribed");
+        } else if (view === "video-downloads") {
+          tabVideoDownloads.classList.add("active");
+          secVideoDownloads.style.display = "block";
         } else {
           tabEditor.classList.add("active");
           secEditor.style.display = "block";
@@ -2716,5 +2777,6 @@ ${content_html}
           .replace(/'/g, "&#039;");
       }
     </script>
+    <script src="/cms/video-downloads.js" defer></script>
   </body>
 </html>

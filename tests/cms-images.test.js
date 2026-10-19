@@ -48,7 +48,7 @@ function json(body, status = 200) {
 
 function composer() {
   const html = fs.readFileSync(path.join(__dirname, "..", "cms", "index.html"), "utf8");
-  const script = html.slice(html.indexOf("<script>") + 8, html.lastIndexOf("</script>"));
+  const script = html.match(/<script>([\s\S]*?)<\/script>/)[1];
   const elements = new Map();
   const getElementById = (id) => {
     if (!elements.has(id)) elements.set(id, {

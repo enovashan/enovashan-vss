@@ -1,6 +1,7 @@
 const { unpublishPostFromGitHub } = require("./_github-publish");
 const { isThumbnailUrl } = require("./_cms-images");
 const { getSupabaseConfig, verifyAdminUser } = require("./_cms-auth");
+const handleSubscribers = require("./_cms-subscribers");
 
 function jsonResponse(response, status, value) {
   response.setHeader("cache-control", "no-store");
@@ -32,6 +33,9 @@ function sanitizeSlug(value) {
 }
 
 module.exports = async function handler(request, response) {
+  if (request.query?.resource === "subscribers") {
+    return handleSubscribers(request, response);
+  }
   const config = getSupabaseConfig();
   if (!config) {
     return jsonResponse(response, 503, { error: "Supabase configuration missing (SUPABASE_URL / SUPABASE_SECRET_KEY)." });

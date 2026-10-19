@@ -1389,7 +1389,7 @@
       }
 
       async function fetchSubscribers(query) {
-        const res = await fetch(`/api/cms-subscribers?${query}`, {
+        const res = await fetch(`/api/cms-posts?resource=subscribers&${query}`, {
           headers: { Authorization: `Bearer ${currentSessionToken}` },
         });
         const data = await res.json();

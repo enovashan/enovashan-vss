@@ -3,7 +3,8 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const vm = require("node:vm");
-const handler = require("../api/cms-subscribers");
+const handler = require("../api/_cms-subscribers");
+const postsHandler = require("../api/cms-posts");
 
 const originalFetch = global.fetch;
 const originalEnv = { ...process.env };
@@ -89,6 +90,22 @@ test("header count uses exact total rather than the page size", async () => {
   assert.equal(res.statusCode, 200);
   assert.equal(res.body.total, 1234);
   assert.deepEqual(res.body.subscribers, []);
+});
+
+test("existing CMS endpoint routes subscriber requests to the admin-only handler", async () => {
+  setup();
+  global.fetch = async (url) => {
+    if (url.endsWith("/auth/v1/user")) return json({ email: "admin@example.com" });
+    assert.equal(new URL(url).pathname, "/rest/v1/subscribers");
+    return json([], 200, { "content-range": "*/0" });
+  };
+  const res = response();
+  await postsHandler(request({ resource: "subscribers", summary: "true" }), res);
+  assert.equal(res.statusCode, 200);
+  assert.equal(res.body.total, 0);
+  const unauthorized = response();
+  await postsHandler({ method: "GET", headers: {}, query: { resource: "subscribers" } }, unauthorized);
+  assert.equal(unauthorized.statusCode, 401);
 });
 
 test("empty subscriber list and invalid paging are handled", async () => {
